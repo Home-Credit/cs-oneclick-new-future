@@ -1,0 +1,1431 @@
+FORMAT: 1A
+HOST: https://api.homecredit.cz
+
+# CS - OneClick API - Installments - FUTURE
+API documentation for Home Credit One-Click API (next release preview).
+
+> Version of documentation: `1.06.27.043967f3a05d196d123c09467cf1c42d2bc73316`
+
+| Version | Release | Release date | News |
+| ---     | ---     | ---          | ---  |
+| 1.06.27 | CS46    | 28.8.2018    | Merchantsite notifications - 3 attributes have been added (checkSum, notificationDate, orderNumber)  |
+| 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.customer - following attributes have been removed: titleBefore, titleAfter, vatin |
+| 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.order - following attributes have been removed: deliveryCarrier, documents |
+| 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.order.items - following attributes have been removed:  variant, description, categories, productURL |
+| 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.merchantURLs - following attributes have been removed: paymentEndpoint, changeEndpoint |
+| 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request - following attributes have been removed: - agreementTermsAndConditions, agreementPersonalDataProcessing|
+| 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response.customer - following attributes have been removed: titleBefore, titleAfter, vatin, type, dueDateCategory, ordersCountLimit, ordersCountRemaining |
+| 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response.order - following attributes have been removed: deliveryCarrier, documents, deliveryDate, deliveryTrackingNumber, sentDate |
+| 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response.order.items - following attributes have been removed:  variant, description, categories, productURL, deliveryDate, deliveryTrackingNumber, sentDate |
+| 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response - following attributes have been removed: agreementTermsAndConditions,agreementPersonalDataProcessing |
+| 1.06.25 | CS46    | 28.8.2018    | Change application order – new resource added |
+| 1.06.25 | CS46    | 28.8.2018    | Change of attributes added to redirect URL (redirection back to eshop pages after completion of financing application process) |
+
+In case of any question, please contact Tomáš Bárta (Tomas.Barta@homecredit.cz).
+
+## Getting started
+This online document describes Home Credit (HC) One-Click API - the means for partner e-shops through which they can offer their customers the benefits of one of Home Credit's payment methods.
+
+The aim of here described services is to allow customers the smooth running through the process of an online purchase. The services that allow achieving this goal are divided into the following groups:
+
+| Group of services                  | Purpose                                                                                                                                                                                           |
+| ---                                | ---                                                                                                                                                                                               |
+| Security                           | Security rules and principles                                                                                                                                                                     |
+| Application resources              | Services that allows processing of *application* and *order* during their whole lifecycle                                                                                                         |
+| Installments calculator resources  | Services that allow partner e-shops to implement an installment calculator on their websites                                                                                                      |
+| Merchantsite resources             | Services that should be developed and exposed by partner e-shops to allow HC asynchronously inform these partner e-shops about important changes regarding particular *applications* and *orders* |
+| Health check                       | Health check usage description                                                                                                                                                                    |
+
+### Basic implementation
+Basic and minimum way how to implement HCO API is to at least implement:
+1. [Login](#reference/security/login-partner)
+    - You must be authorized to be able to access to the most resources
+1. [Create application](#reference/application-resources/create-application)
+    - When you collect necessary data of a customer and his/her order, call this resource to start the loan approval process by creating an `application`. `Application` itself and its ID are essential for a successful process completion.
+1. Redirect handlers.
+    - Special URLs for customers that shows payment success or rejection (more info [here](#introduction/getting-started/parameters-added-to-your-return-urls)).
+1. [Application notification](#reference/merchantsite-resources/application-notification)
+    - This endpoint has to be exposed on your side to allow HC back-end to asynchronously notify you about the important changes regarding particular applications and orders.
+1. [Mark order items as sent](#reference/application-resources/mark-order-items-as-sent) or [Mark order items as delivered](#reference/application-resources/mark-order-items-as-delivered) (use the one that suits your expedition and invoicing process, `Mark order items as delivered` is preferred)
+    - HC does not start the process of financial compensation unless the order is marked as `SENT` / `DELIVERED`.
+
+[![Sequence diagram of minimum implementation](https://github.com/mdostal-hci/oneclick-images/raw/master/SequenceDiagramInstallmentMinimum.png)](https://github.com/mdostal-hci/oneclick-images/raw/master/SequenceDiagramInstallmentMinimum.png)
+
+[![State diagram of Application](https://github.com/mdostal-hci/oneclick-images/raw/master/StateDiagramApplication.png)](https://github.com/mdostal-hci/oneclick-images/raw/master/StateDiagramApplication.png)
+
+It is necessary to fill in all attributes marked as required in the request but filling optional parameters will result in better application approval rate. You should always consider to fill as many attributes as possible. Contact the sales support to find out which attributes correlate with approval rate the most.
+
+### Parameters added to your return URLs
+- During redirection of the customer from Home Credit's front-end back to e-shop (to one of the provided URLs - `approvedRedirectUrl`, `rejectedRedirectUrl`) there are some potentially useful information about a customer's outcome in Home Credit's front-end added:
+- `orderNumber` (string) - E-shop's internal order number provided within API call of [Create application](#reference/application-resources/create-application)
+- `withdrawal` (boolean) – True when the customer's purchase is financed directly from his already existing revolving loan; false when a new contract is being created
+- `downPayment` (number) – Value of down payment, usually set to 0
+- `stateReason` (enum) – Application substate
+- `applicationId` (string) - HCO application identifier
+- `checkSum` (string) – hashed message
+
+- e.g. `http://youreshop.cz?orderNumber=0606104036&stateReason=PROCESSING_SIGNED&downPayment=100000&checkSum=443E150D3406F6A8DC62C1DB224AFDD84FA9907071BB1AD9B2C7701031793662191501B26AADF3A31361341EA176C80B23D8A9A5E5B5219538289945FE0C20A7&applicationId=01-11b00a1ef1&withdrawal=false`
+
+
+## Naming conventions
+- we use camelCase for all object and attribute names
+- we use CAPITAL_UNDERSCORE for enum values
+- we use plural in resource names
+
+## Paging
+- some resources (stated in documentation) that return collection of objects support pagination. We are using technique known as 'cursor-based pagination'.
+- on request:
+  - query parameter `limit` specifies maximum number of objects in returned collection
+  - query parameter `after` specifies last object retrieved in previous request. Its value is usually `id` of last object retrieved in previous call, but this will be stated in documentation. Parameter `after` is used when traversing collection forwards.
+  - query parameter `before` specifies first object retrieved in previous request (analogy to `after` parameter), and is used when traversing collection backwards.
+  - if `before` and `after` are omitted, beginning of collection is returned, using specified sort order
+  - items in collection are always sorted accoridng to attribute which could be passed in after/before parameters. Even if you specify different sorting order, this attribute will be last sorting criterion; if you do not specify sorting order, result collection will be sorted according to this attribute.
+- on response:
+  - `pagingInfo` object is returned as part of response body with following attributes:
+    - _nextPage_ - request to retrieve next page. Either nextPage or previousPage is returned, depending whether you specify `after` or `before` parameter. If you specify neither `before` nor `after` parameter, these attributes will be omitted from response.
+    - _prevPage_ - request to retrieve previous page (see `nextPage` attribute description above).
+    - _itemsPerPage_ - number of items per page
+
+
+Example request:
+```
+curl -X GET https://api.homecredit.cz/financing/v1/examples?sort=category&limit=10&after=15
+```
+
+Example response pagingInfo:
+
+```javascript
+"pagingInfo": {
+    "nextPage": "/examples?sort=category&limit=10&after=15"
+    "itemsPerPage": 10,
+}
+```
+
+## Sorting
+- some resources (stated in documentation) supports result sorting. You can specify sorting attributes and order using `sort` request parameter. For ascending order, specify just attribute name; for descending order, add unary - in front of attribute name. You can specify multiple attributes for sorting, separated by comma.
+- each resource that supports sorting specifies list of attributes that can be used for sorting.
+
+Examples:
+- `/public/fxrates?sort=currencyCode` - get list of FX rates sorted by attribute currencyCode
+- `/public/branches?sort=-name` - get list of branches, sorted by attribute name in descending order
+- `/banking/accounts?sort=accountType,-accountCurrency,accountName` - get list of accounts, sorted by type (ascending), then by currency descending and then by account name (ascending)
+
+
+## Filtering
+Some resources (stated in documentation) supports results filtering. Such resources have list of filters specified together with possible resources and possible values.
+
+You can specify filtering by passing `filter` attribute. General pattern to specify filter is:
+
+`<filterName>|<operator>|<values>`
+
+- `filterName` - filter name from documentation
+- `operator` - operator, specified in resource documentation
+- `values` - one or more values for filter. Multiple values are separated by comma
+
+Multiple filters can be specified on each request, separated by semi-colon. They are joined by "AND", so each result item must satisfy all conditions.
+
+
+### Filtering examples
+- get a list of partners with category in (1, 5, 10)
+```
+GET /general/partners?filter=category|in|1,5,10
+```
+
+- get a list of contracts with contractDate in (2016-02-10, 2016-04-28>
+```
+GET /general/contracts?filter=contractDate|gt|2016-02-10;contractDate|lteq|2016-04-28
+```
+
+
+### List of operators
+| Operator | Meaning                |
+| ---      | ---                    |
+| lt       | less than              |
+| lteq     | less than or equals    |
+| eq       | equals                 |
+| gteq     | greater than or equals |
+| gt       | greater than           |
+| in       | value in list          |
+
+
+## Request restrictions
+Please, keep in mind following restrictions regarding requests:
+- Maximum request size is **10 MB**.
+- Maximum size of accepted single file is **500 kB**.
+- Here is the list of suppported files:
+
+| MIME type                                                                 | Example(s)                 |
+| ---                                                                       | ---                        |
+| application/pdf                                                           | *.pdf                      |
+| application/vnd.openxmlformats-officedocument.spreadsheetml.sheet         | *.xlsx                     |
+| application/vnd.openxmlformats-officedocument.wordprocessingml.document   | *.docx                     |
+| application/vnd.openxmlformats-officedocument.presentationml.presentation | *.pptx                     |
+| application/vnd.ms-excel                                                  | *.xls, *.xlt, *.xla        |
+| application/msword                                                        | *.doc, *.dot               |
+| application/vnd.ms-powerpoint                                             | *.ppt, *.pot, *.pps, *.ppa |
+| plain/text                                                                | *.csv, *.txt               |
+| image/jpeg                                                                | *.jpg, *.jpeg              |
+| image/png                                                                 | *.png                      |
+| image/gif                                                                 | *.gif                      |
+
+
+## API calls limits
+When you reach API calls limit (you call the API more times than is your quota), you receive HTTP error 429. To inform you about limits we use following response headers:
+- `X-Rate-Limit-Limit` - The number of allowed requests in the current period
+- `X-Rate-Limit-Remaining` - The number of remaining requests in the current period
+- `X-Rate-Limit-Reset` - The number of seconds left in the current period
+
+
+## Response encoding
+Unless stated otherwise, all responses are sent as `Content-Type: application/json; charset=utf-8`
+
+
+## HTTP status codes
+We use following status codes throughout the API, except for OAuth flow when response codes are prescribed in RFC
+- 200 `OK` - request was successful
+- 201 `Created` - request was successfull and resource was created
+- 204 `No Content` - we accepted your request but there is nothing to return (e.g. response is empty)
+- 400 `Bad Request` - syntax error, e.g. request is missing required parameters/attributes or parameter values are of incorrect type
+- 401 `Unauthorized` - your API key is wrong or user not authorized (not logged in)
+- 403 `Forbidden` - access denied (e.g. user / application is not allowed to use the resource)
+- 404 `Not Found` - resource could not be found
+- 405 `Method Not Allowed` - specified method is not allowed for resource
+- 422 `Unprocessable Entity` -  business (semantic) errors. Request is well-formed, but cannot be processed (e.g. payment due date is in past). Errors are specified in response body (see below)
+- 429 `Too Many Requests` - you exceeded the rate limit (see section [API calls limit](#introduction/api-calls-limits) above)
+- 500 `Internal Server Error` - something went wrong on our side
+- 503 `Service Unavailable` - there is planned service outage
+
+
+## Error handling
+Besides HTTP status codes, which are the main indication if something goes wrong, we also use `errors` object to report more details about errors.
+
+Errors object example:
+```javascript
+{
+    ...
+
+    errors: [
+        {
+            "code": "ERR_100",
+            "message": "Invalid contract number",
+            "severity": "ERROR",
+            "attribute": "partyAccount.accountNumber",          // optional
+            "ticketId": "UAT1:AMS:20160516-091658.450:45e4" // optional
+        },
+        {
+            "code": 352,
+            "message": "Insufficiend funds for payment order realization",
+            "severity": "WARN"
+        },
+        {
+            "code": 523,
+            "message": "This order will trigger currency exchange operation",
+            "severity": "INFO"
+        }
+    ]
+}
+```
+
+Error object attributes
+| Attribute name | Description                                                     |
+| ---            | ---                                                             |
+| code           | unique error code                                               |
+| message        | human readable error description (non-localized)                |
+| severity       | error severity ([see below](#error-severity))                   |
+| attribute      | json path of request attribute that caused the error (optional) |
+| ticketId       | internal ticket ID, used for error backtracking                 |
+
+<a name="error-severity"></a>
+There are 3 levels of error severity:
+- `ERROR` - critical error, execution cannot continue. This MUST be indicated also by appropriate HTTP status code (e.g. `422 Unprocessable Entity`)
+- `WARN` - non-critical error, execution can continue but further user interaction is advisable (for request to proceed, you MUST specify this error code in `override` request attribute). This MIGHT be indicated also by appropriate HTTP status code.
+- `INFO` - information only, execution can continue without user interaction.
+
+### Errors overview
+| Status code | Code                  | Explanation                                                                     | Message                                                                                                        |
+| ---         | ---                   | ---                                                                             | ---                                                                                                            |
+| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.) | (*Various messages possible*) e.g. Unsupported combination of application state and order state                  |
+| 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                       | (*Various messages possible*) e.g. Specified object was not found                                              |
+| 422         | NOT_ALLOWED           | Operation is not allowed (internal reason)                                      | (*Various messages possible*) e.g. Not allowed (other reason)                                                    |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable   | (*Various messages possible*) e.g. Failed to parse given JSON                                                  |
+
+
+## Formats
+- **date** and **time** uses [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) formatting, e.g.:
+  - date is represented as `YYYY-mm-dd`. Timezone (local) is added when necessary.
+    - time is represented as `Thh:mm:ss`. Timezone is added when necessary. Time with arbitrary number of digits respresenting miliseconds is also accepted (when [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format criteria is met) but the time without miliseconds is always returned.
+  - day of week is represented as number 1..7, with 1 being Monday
+  - week no. 1 is the week with the year's first Thursday in it
+- **phone numbers** uses international format starting with '+' and including country code (example of valid number: `+420739111222`)
+- **numbers format** number format is defined by [JSON standard](http://www.json.org), e.g. decimals are separated by `.`
+- **money format** uses [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) formatting (in minor units, e.g.: 12590 represents 125,90 CZK)
+
+
+## Documentation principles
+- attributes in request/response object are optional, unless stated otherwise (`required` flag under attribute name)
+- required attribute in optional object means, that if optional object is specified, it must contain required attribute.
+- all values in request/response attributes are just examples, except for enum values - these are the only possible values for given attribute.
+
+
+# Group Testing & Integration
+This section should help new partner's e-shop developers with better understanding of the API and connected processes especially during early stages of the API integration.
+
+> Temporarily described in separate document (currently written in Czech) "Základní informace k platební metodě HC On-line.docx" obtainable through a request at tomas.barta@homecredit.cz.
+
+
+# Group Security
+To access our API, you have to obtain *access token* first; this token is a string of arbitrary length (30+ chars) and it has to be included in HTTP header to every request to API. This section describes way to obtain valid access token and use it to access protected resources.
+
+- to obtain access token, use `/authentication/v1/partner` resource with appropriate parameters (see the [`/authentication/v1/partner` resource documentation](#reference/security/login-partner))
+
+- access token should be present in every request using request header `Authorization`, with type `Bearer`. If your access token has value `secret_token`, it should be specified as follows:
+
+`Authorization: Bearer secret_token`
+
+So the real example using curl will look like:
+
+```
+curl -H "Authorization: Bearer secret_token" https://api.homecredit.cz/financing/v1/applications
+```
+
+- access token has limited time validity (for 2 hours). After it is expired, you have to obtain new one using `/authentication/v1/partner` resource.
+
+- if you fail to specify access token, you will receive `401 Unauthorized` error and following response body:
+
+```
+{
+   "error_description": "The access token is missing",
+   "error": "invalid_request"
+}
+```
+
+- if you provide invalid access token, you will receive `401 Unauthorized` error and following response body:
+
+```
+{
+    "error_description":"The access token is invalid or has expired",
+    "error":"invalid_token"
+}
+```
+
+> IMPORTANT NOTE: You must keep your access token and login credentials safe. NEVER put login credentials nor access token into client page. If you plan to integrate API calls in client flow without submitting the page to server, you should implement REST endpoint bound to your shopping basket session, that will be used as a proxy to call HC API.
+
+> NEVER transfer access token nor login credentials over plain HTTP. Such requests will be refused.
+
+
+## Login partner [/authentication/v1/partner]
+
+### Login partner [POST]
+Partner authenticate himself and obtain acces token
+
++ Request (application/json; charset=utf-8)
+    + Attributes (PartnerLogin)
+
+
++ Response 200(application/json; charset=utf-8)
+
+        Partner acces token issued
+
+    + Attributes (PartnerLoginResult)
+
+
++ Response 400(application/json; charset=utf-8)
+
+        Unable to authenticate partner
+
+    + Attributes (Errors)
+
+
+# Group Application resources
+Services that allows processing of *application* and *order* during their whole lifecycle.
+
+## Create application [/financing/v1/applications]
+Elementary flow starts when customer wants to use one of Home Credit's payment method for financing his purchase made in partner e-shop.
+
+| Financing type     | Supported |
+| ---                | ---       |
+| `INSTALLMENT`      | YES       |
+
+
+Use `/financing/v1/applications` resource with properly filled request that contains at least following data
+- Customer information
+  - Name (first name and last name - if possible, otherwise full name)
+  - E-mail
+  - Phone number
+- Order details
+  - Number
+  - Total Price (including VAT)
+  - Total VAT (array of total amounts split by VAT rates)
+  - Addresses (array, at least one item is required - type BILLING)
+    - Country
+    - City
+    - Street
+    - Street number
+    - ZIP
+    - Address type
+  - Order items (array, at least one item is required)
+    - Code
+    - Order item name
+    - Total price (all pieces, including VAT)
+    - Total VAT
+- Financing type (always `INSTALLMENT`)
+- Financing type details
+  - \*Installment settings - preferred installment amount
+  - \*Installment settings - preferred down payment amount
+  - \*Installment settings - installment program product code
+- Additional information necessary for the continuation and completion of the process
+  - Your URL where the customer should be redirected after application approval
+  - Your URL where the customer should be redirected after application rejection
+  - URL of your notification endpoint you want us to send you notifications about particular application updates
+> \* = Required in case customer has already used installment calculator embedded on your website and selected preferred installment program. See the [Installments calculator resources section](#reference/installments-calculator-resources) for more details about possibility to embed installment calculator on your website. Otherwise optional (except).
+
+If the request was successfully processed, you receive HTTP status code 201 and *application* object with at least following information in the response:
+- Application unique ID
+- Application state
+- Application substate
+- Gateway redirect URL where you should redirect a customer after processing of the response
+
+> You may also receive information about initially requested **down payment** - this can be later changed by customer during the process of finalization of financing application. In such cases we recommend you to check the final **down payment** of approved loan (after the *application* is approved) via `/financing/v1/applications/{applicationId}`.
+
+If the request was recognized as duplication, you receive HTTP status code 200 and the *application* object created during the first related successful request.
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  | Explanation                                                                      |
+| ---         | ---                   | ---                                                                              |
+| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
+| 422         | UNPROCESSABLE         | Request was well-formed but was unable to be followed due to semantic errors     |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+
+
+### Create application [POST]
+Create new *application* of particular financing type
+
++ Request (application/json; charset=utf-8)
+    + Attributes (ApplicationRequest)
+
+
++ Response 200(application/json; charset=utf-8)
+
+        Application was created
+
+    + Attributes (Application)
+
+
++ Response 400(application/json; charset=utf-8)
+
+        There was an error processing request
+
+    + Attributes (Errors)
+
+
+## Application detail [/financing/v1/applications/{applicationId}]
+If you need to find out current information about particular *application* - primarily its state and other details - use `/financing/v1/applications/{applicationId}` resource where `{applicationId}` is the *application* ID you received in the response of `/financing/v1/applications` after its creation.
+
+| Financing type     | Supported         |
+| ---                | ---               |
+| `INSTALLMENT`      | YES               |
+
+If the request was successfully processed, you receive HTTP status code 200 and *application* object with at least following information in the response:
+- Application unique ID
+- Application type
+- Application state
+- Application substate
+- Gateway redirect URL
+
+> You may also receive information about current **down payment** which is useful when you need to find out whether customer's loan was approved with different down payment than had been initially set in your embedded installment calculator.
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  | Message                                                                          |
+| ---         | ---                   | ---                                                                              |
+| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
+| 404         | APPLICATION_NOT_FOUND | The requested resource could not be found                                        |
+| 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+
++ Parameters
+    + applicationId (string, required, `01-11200a0ee1`)
+
+
+### Get application detail [GET]
+Get specific *application* detail by ID
+
++ Response 200(application/json; charset=utf-8)
+
+        Actual application data
+
+    + Attributes (Application)
+
+
++ Response 404(application/json; charset=utf-8)
+
+        Application does not exist
+
+    + Attributes (Errors)
+
+
+## Cancel application [/financing/v1/applications/{applicationId}/cancel]
+If there is need to completely cancel customer's *order*, it is necessary to cancel respective *application*. For this purpose use `/financing/v1/applications/{applicationId}/cancel` resource where `{applicationId}` is the *application* ID you received in the response of `/financing/v1/applications` after its creation.
+
+| Financing type     | Supported |
+| ---                | ---       |
+| `INSTALLMENT`      | YES       |
+
+| Application state | Availability |
+| ---               | ---          |
+| `REJECTED`        | NO           |
+| `CANCELLED`       | YES          |
+| `PROCESSING`      | YES          |
+| `READY`           | YES          |
+
+If the request was successfully processed, you receive HTTP status code 200 and information about cancelled *application* with at least following information in the response:
+- Application unique ID
+- Application type
+- Application state
+- Application substate
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  | Explanation                                                                      |
+| ---         | ---                   | ---                                                                              |
+| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
+| 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                        |
+| 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
+| 422         | APPLICATION_REJECTED  | When you try to cancel already `REJECTED` `Application`, which is not allowed    |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+
+
++ Parameters
+    + applicationId (string, required, `01-11b00a1ef1`)
+
+
+### Cancel application [PUT]
+Cancel *application*.
+
++ Request (application/json; charset=utf-8)
+    + Attributes (ApplicationCancelRequest)
+
++ Response 200(application/json; charset=utf-8)
+
+        Application was cancelled
+
+    + Attributes (Application)
+
+
++ Response 422(application/json; charset=utf-8)
+    Application can not be cancelled
+
+    + Attributes (Errors)
+
+
+## Change application order [/financing/v1/applications/{applicationId}/order]
+When there's some changes within *order* that may have an important impact on the repayment process after its submission, use `/financing/v1/applications/{applicationId}/order` resource in order we can adjust everything properly. `{applicationId}` is the application ID you received in the response of `/financing/v1/applications` after its creation.
+
+| Financing type     | Supported  |
+| ---                | ---        |
+| `INSTALLMENT`      | YES        |
+
+| Application state | Availability                                                          |
+| ---               | ---                                                                   |
+| `REJECTED`        | NO                                                                    |
+| `CANCELLED`       | NO                                                                    |
+| `PROCESSING`      | YES                                                                   |
+| `READY`           | YES* (see the [availability note bellow](#change-order-availability)) |
+
+Use `/financing/v1/applications/{applicationId}/order` resource with properly filled request that contains (only) changed data (resource allows partial put).
+<a name="change-order-availability"></a>
+> **AVAILABILITY NOTE:** Valid request object contains only order number (`order.number`) and/or one item in the array `order.variableSymbols[]`. Supported `stateReason` of `state READY` are `READY_TO_SHIP`, `READY_SHIPPED`, `READY_DELIVERING` (`state PROCESSING` is supported without any limitations).
+
+If the request was successfully processed, you receive HTTP status code 200 and object of information about changed *order* plus basic information about respective *application* (ID, state, substate) with at least following information in the response:
+- Order number
+- Order total price (including VAT)
+- Order total VAT (array of VAT amounts split by VAT rates)
+- Addresses (array)
+  - Country
+  - City
+  - Street
+  - Street number
+  - ZIP
+  - Address type
+- Order items (array)
+  - Order item name
+  - Total price (all pieces, including VAT)
+  - Total VAT
+  - Order item state
+- Order state
+- Application basic information
+  - ID
+  - Application state
+  - Application substate
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  | Explanation                                                                     |
+| ---         | ---                   | ---                                                                             |
+| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.) |
+| 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                       |
+| 422         | NOT_SUPPORTED         | Resource is not supported for given financing type                              |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable   |
+
+
++ Parameters
+    + applicationId (string, required, `01-11b00a1ef1`)
+
+
+### Change application order [PUT]
+Change *order*. Used to change order number and/or variable symbol.
+
++ Request (application/json; charset=utf-8)
+    + Attributes (OrderChangeRequest)
+
+
++ Response 200(application/json; charset=utf-8)
+        Order was changed
+    + Attributes (OrderExtended)
+
+
++ Response 422(application/json; charset=utf-8)
+    Order can not be changed.
+    + Attributes (Errors)
+
+
+## Mark order as sent [/financing/v1/applications/{applicationId}/order/send]
+When the whole *order* was shipped to the customer, use `/financing/v1/applications/{applicationId}/order/send` resource where `{applicationId}` is the *application* ID you received in the response of `/financing/v1/applications` after its creation.
+
+| Financing type     | Supported |
+| ---                | ---       |
+| `INSTALLMENT`      | YES       |
+
+| Application state | Availability                                                           |
+| ---               | ---                                                                    |
+| `PROCESSING`      | NO                                                                     |
+| `REJECTED`        | NO                                                                     |
+| `CANCELLED`       | NO                                                                     |
+| `READY`           | YES  (* available only when `Application.stateReason = READY_TO_SHIP`) |
+
+
+If the request was successfully processed, you receive HTTP status code 200 and object of information about changed *order* plus basic information about respective *application* (ID, state, substate) with at least following information in the response:
+- Order number
+- Order total price (including VAT)
+- Order total VAT (array of VAT amounts split by VAT rates)
+- Addresses (array)
+  - Country
+  - City
+  - Street
+  - Street number
+  - ZIP
+  - Address type
+- Order items (array)
+  - Order item name
+  - Total price (all pieces, including VAT)
+  - Total VAT
+  - Order item state
+- Order state
+- Application basic information
+  - ID
+  - Application state
+  - Application substate
+
+  In other cases, you receive one of the following errors:
+  | Status code | Code                  | Explanation                                                                      |
+  | ---         | ---                   | ---                                                                              |
+  | 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
+  | 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                        |
+  | 422         | NOT_SUPPORTED         | Resource is not in supported state (substate)                                    |
+  | 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+
++ Parameters
+    + applicationId (string, required, `01-11b00a1ef1`)
+
+
+### Mark order as sent [PUT]
+Mark order as sent.
+
+System notification. The whole *order* was shipped to the customer. Based on partner's settings, application payment may be processed.
+
++ Response 200(application/json; charset=utf-8)
+        Order items or whole order is marked as shipped
+
+    + Attributes (OrderExtended)
+
+
++ Response 422(application/json; charset=utf-8)
+        State change can not be processed
+
+    + Attributes (Errors)
+
+
+## Mark order as delivered [/financing/v1/applications/{applicationId}/order/deliver]
+When the whole *order* was delivered to the customer, use `/financing/v1/applications/{applicationId}/order/deliver` resource where `{applicationId}` is the *application* ID you received in the response of `/financing/v1/applications` after its creation.
+
+| Financing type     | Supported |
+| ---                | ---       |
+| `INSTALLMENT`      | YES       |
+
+| Application state | Availability                                                          |
+| ---               | ---                                                                   |
+| `PROCESSING`      | NO                                                                    |
+| `REJECTED`        | NO                                                                    |
+| `CANCELLED`       | NO                                                                    |
+| `READY`           | YES (* available only when `Application.stateReason = READY_TO_SHIP`) |
+
+If the request was successfully processed, you receive HTTP status code 200 and object of information about changed *order* plus basic information about respective *application* (ID, state, substate) with at least following information in the response:
+- Order number
+- Order total price (including VAT)
+- Order total VAT (array of VAT amounts split by VAT rates)
+- Addresses (array)
+  - Country
+  - City
+  - Street
+  - Street number
+  - ZIP
+  - Address type
+- Order items (array)
+  - Order item name
+  - Total price (all pieces, including VAT)
+  - Total VAT
+  - Order item state
+- Order state
+- Application basic information
+  - ID
+  - Application state
+  - Application substate
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  | Explanation                                                                      |
+| ---         | ---                   | ---                                                                              |
+| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
+| 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                        |
+| 422         | NOT_SUPPORTED         | Resource is not in supported state (substate)                                    |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+
+
++ Parameters
+    + applicationId (string, required, `01-11b00a1ef1`)
+
+
+### Mark order as delivered [PUT]
+Mark order as delivered.
+
+System notification. The whole order was delivered to the customer. Based on partner's settings, application payment may be processed.
+
++ Response 200(application/json; charset=utf-8)
+        Order items or whole order is marked as delivered
+
+    + Attributes (OrderExtended)
+
+
++ Response 422(application/json; charset=utf-8)
+        State change can not be processed
+
+    + Attributes (Errors)
+
+
+## Orders [/financing/v1/orders{?applicationId}]
+If you need to find out current information about particular *order* - primarily its state and other details - use `/financing/v1/orders{?applicationId}` resource where `{applicationId}` is the *application* ID you received in the response of `/financing/v1/applications` after its creation.
+
+| Financing type     | Supported |
+| ---                | ---       |
+| `INSTALLMENT`      | YES       |
+
+| Application state | Availability |
+| ---               | ---          |
+| `PROCESSING`      | YES          |
+| `REJECTED`        | YES          |
+| `CANCELLED`       | YES          |
+| `READY`           | YES          |
+
+
+If the request was successfully processed, you receive HTTP status code 200 and object of information about specified *order* plus basic information about respective *application* (ID, state, substate) with at least following information in the response:
+- Order number
+- Order total price (including VAT)
+- Order total VAT (array of VAT amounts split by VAT rates)
+- Addresses (array)
+  - Country
+  - City
+  - Street
+  - Street number
+  - ZIP
+  - Address type
+- Order items (array)
+  - Order item name
+  - Total price (all pieces, including VAT)
+  - Total VAT
+  - Order item state
+- Order state
+- Application basic information
+  - ID
+  - Application state
+  - Application substate
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  | Explanation                                                                      |
+| ---         | ---                   | ---                                                                              |
+| 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                        |
+| 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+
+
++ Parameters
+    + applicationId: `01-11b00a1ef1` (string, optional) - Application ID
+
+
+### Get order [GET]
+Search for *order* using specified parameters.
+
++ Response 200(application/json; charset=utf-8)
+
+        Order data
+
+    + Attributes (OrderExtended)
+
+
++ Response 404(application/json; charset=utf-8)
+
+        Order not found
+
+    + Attributes (Errors)
+
+
+# Group Installments calculator resources
+When you want to provide your customer (that wants to pay for a purchase by a loan) an option to choose from available installment programs while he is still on your website, it is necessary to implement "installments calculator".
+
+Choose one of the following approaches to integrate installments calculator into your website:
+
+- A) Implementing your own installment calculator, with your FE in your design that uses designated API resources ([described below](#reference/installments-calculator-resources/implementing-own-installments-calculator)).
+- B) Integrating Home Credit's javascript widget (described in [special chapter](#reference/javascript-widget-integration)) that:
+  - provides GUI and front-end functionalities
+  - process all needed calculations
+  - provides necessary data to e-shop's back-end in order to easily use them within [*application* creation request](#reference/application-resources/create-application)
+
+> NOTE: Implementation of installment calculator is optional. Customers can always use the installment calculator embedded in Home Credit's front-end.
+
+## Implementing own installments calculator
+In order to implement your own installment calculator (with your GUI design) you will need following resources:
+- `/financing/v1/installmentProgramsOffers` - to find out available installment programs offers and their details
+- `/financing/v1/installmentPrograms` - to find out details of a chosen installment program
+- `/financing/v1/installmentProgramsDownPayments` - to find out down payment options within available installment programs offers
+
+### Installment programs offers [/financing/v1/installmentProgramsOffers]
+When a customer wants to pay for a purchase by a loan and you want to show him an offer of available installment programs, use `/financing/v1/installmentProgramsOffers` resource with properly filled request that contains at least following data:
+- Product set code (you should know the proper product set code from Home Credit's sales representative or other similar source; if you don't provide product set code, your default product set will be used)
+- Price of customer's purchase
+
+If the request was successfully processed, you receive HTTP status code 200 and array of objects of available installment programs with at least following information in the response:
+- Installment program (array)
+  - Installment program product code
+  - Installment program type (in case of only one installment program offer in response it is of type `FAVOURITE`)
+  - Installment amount
+  - Number of installments
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  | Explanation                                                                      |
+| ---         | ---                   | ---                                                                              |
+| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
+| 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+
+
+#### Calculate installment programs offer  [POST]
+Calculate installment programs offer according to specified input
+
+feature | supported by resource
+--- | ---
+[paging](#header-paging) | no
+[sorting](#header-sorting) | no
+[filtering](#header-filtering) | no
+
++ Request (application/json; charset=utf-8)
+    + Attributes (InstallmentProgramsOffersRequest)
+
+
++ Response 200(application/json; charset=utf-8)
+
+        Installment programs collection
+
+    + Attributes (InstallmentPrograms, required)
+
++ Response 400(application/json; charset=utf-8)
+        Error in processing request
+
+    + Attributes (Errors)
+
+
+### Installment programs [/financing/v1/installmentPrograms]
+When a customer wants to know details of one of previously offered installment programs use `/financing/v1/installmentPrograms` resource with properly filled request that contains at least following data:
+- Product code of given installment program
+- Price of customer's purchase
+
+If the request was successfully processed, you receive HTTP status code 200 and object of information about specified installment program with at least following information in the response:
+- Installment program type
+- Installment amount
+- Number of installments
+- Installment program details
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  | Explanation                                                                      |
+| ---         | ---                   | ---                                                                              |
+| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
+| 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+
+
+#### Calculate installment program detail [POST]
+Calculate installment program detailed information.
+
+It returns the installment program that most closely matches specified input.
+
++ Request (application/json; charset=utf-8)
+    + Attributes (InstallmentProgramsRequest)
+
++ Response 200(application/json; charset=utf-8)
+Detailed information about installment program
+    + Attributes (InstallmentProgram)
+
++ Response 422(application/json; charset=utf-8)
+No installment program was found
+    + Attributes (Errors)
+
+
+### Installment programs down payments [/financing/v1/installmentProgramsDownPayments]
+When a customer wants to pay for a purchase by a loan and also wants to choose own down payments settings within offered installment programs, use `/financing/v1/installmentProgramsDownPayments` resource with properly filled request that contains at least following data:
+- Product set code (you should know the proper product set code from Home Credit's sales representative or other similar source)
+- Price of customer's purchase
+
+If the request was successfully processed, you receive HTTP status code 200 and object of information about available down payments settings with at least following information in the response:
+- Minimum down payment amount
+- Maximum down payment amount
+- Step between given minimum and maximum down payment amounts
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  | Explanation                                                                      |
+| ---         | ---                   | ---                                                                              |
+| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
+| 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+
+
+#### Calculate installment programs down payments [POST]
+Calculate installment programs down payments according to specified input
+
++ Request (application/json; charset=utf-8)
+    + Attributes (InstallmentProgramsDownPaymentsRequest)
+
++ Response 200(application/json; charset=utf-8)
+Down payments information - minimal, maximal and available step
+    + Attributes (InstallmentProgramsDownPayments)
+
++ Response 400(application/json; charset=utf-8)
+Error in processing request
+    + Attributes (Errors)
+
+
+## Group JavaScript widget integration
+In order to use Home Credit's javascript widget as an installment calculator, your e-shop back-end has to be configured properly. How to do it is currently described in separate document (currently written in Czech) "Základní informace k platební metodě HC On-line.docx" obtainable through a request at tomas.barta@homecredit.cz.
+
+
+# Group Health check
+To easily find out current API state use the [API state check resource](#reference/api-status-check/api-status-check).
+To check the availability of back-end services use the [health check resource](#reference/health-check/health-check).
+
+## API status check [/info]
+If the API is up and runing, you receive HTTP status code 204 and object of information about it.
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  |
+| ---         | ---                   |
+| 406         | NOT_ACCEPTABLE        |
+| 500         | INTERNAL_SERVER_ERROR |
+
+> Note: resource DOES NOT require valid *access_token* in the HTTP header of the request
+
+### API status check [GET]
+Get current state of the API
+
++ Response 200(application/json; charset=utf-8)
+
+        API is up and running
+
+    + Attributes (ApiInfo)
+
+
++ Response 500(application/json; charset=utf-8)
+        Error in processing request
+
+    + Attributes (Errors)
+
+
+## API health check [/financing/v1/health{?timeout}]
+If the API back-end services is up and runing, you receive HTTP status code 204.
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  |
+| ---         | ---                   |
+| 500         | INTERNAL_SERVER_ERROR |
+| 504         | GATEWAY_TIMEOUT       |
+
+> Note: resource DOES require valid *access_token* in the HTTP header of the request
+
++ Parameters
+    + timeout: `2000` (string, optional) - Optional timeout (in miliseconds) for completition of the request (504 is returned when not fulfilled)
+
+### API health chceck [GET]
+Get current state of the API
+
++ Response 204
+
++ Response 500(application/json; charset=utf-8)
+        Error in processing request
+
+    + Attributes (Errors)
+
+
+# Group Merchantsite resources
+Services that should be developed and exposed by partner e-shops to allow HC asynchronously inform these partner e-shops about important changes regarding particular *applications* and *orders*
+
+> **ATTENTION:** This set of APIs is NOT exposed from HC. Instead, it should be developed by partner and accept calls specified below.
+
+
+## Application notification [/financing/v1/{application.merchantUrls.notificationEndpoint}]
+We use this resource when there is need to let you know about important changes within particular *application*. Namely in following situations:
+
+| Trigger                                                             | Corresponding Application.stateReason | Expected reaction                                                                                       |
+| ---                                                                 | ---                                   | ---                                                                                                     |
+| Application was approved (approval process is proceeding correctly) | PROCESSING_APPROVED                   | Do not cancel customer's order prematurely                                                              |
+| Application was rejected                                            | REJECTED                              | You should probably cancel respective order and release reserved goods                                  |
+| Application was cancelled (before delivery)                         | CANCELLED_NOT_PAID                    | You should probably cancel respective order and release reserved goods                                  |
+| Order to dispatch (we commit to finance customer's order)           | READY_TO_SHIP                         | Dispatch the order to the customer                                                                      |
+| Application is going to be paid out                                 | READY_PAID                            | Wait for us processing financial compensation with you                                                  |
+<!-- | Application was cancelled (after delivery)                          | CANCELLED_RETURNED                    | You should probably cancel respective order and process returning of the goods (if not already done so) |-->
+
+We fill the request with at least following information:
+- Application unique ID
+- Application state
+- Application substate
+- Timestamp of the notification
+- Hashed message (check sum)
+
+> USEFUL NOTE: If you think it takes us unusually long time to send you particular notification, do not hesitate to use `/financing/v1/applications/{applicationId}` resource (where `{applicationId}` is the application ID you received in the response of `/financing/v1/applications` after its creation) to directly find out information you seek.
+
+### Application notification [POST]
+Notify partner about changes in application.
+
++ Request (application/json; charset=utf-8)
+    + Attributes (NotificationRequest)
+
+
++ Response 200 (application/json; charset=utf-8)
+
+         {
+            "status": "OK"
+         }
+
++ Response 400 (application/json; charset=utf-8)
+
+        Can not process changes
+
+
+
+# Data Structures
+
+## PartnerLogin (object)
+Partner login credentials
+
+### Properties
++ `username`: `eShop` (string, required) - Partner username
++ `password`: `eShopSecretPassword` (string, required) - Partner secret password
+
+## PartnerLoginResult (object)
+Authenticated partner access token
+
+### Properties
++ `accessToken`: `TokenForPartnerTokenForPartnerTokenForPartnerTokenForPartner` (string) - Access token
++ `expiresIn`: 7200 (number) - Token validity remaining time (in seconds)
+
+
+## ApplicationRequest (object)
+Financing application request
+
+### Properties
++ `customer` (ApplicationRequestCustomer, required) - Customer information
++ `order` (OrderBase, required) - Order information
++ `type` (enum, required) - Financing type
+    + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
++ `settingsInstallment` (object, optional) - Settings for INSTALLMENT Application type.
+    + `preferredMonths`: 10 (number, optional) - Preferred number of installments (in months)
+    + `preferredInstallment` (Amount, optional) - Preferred repayment amount
+    + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
+    + `productCode`: `a122ax` (string, optional) - Product code, this indicates previous calculation result
+    + `productSetCode`: `bc11523` (string, optional) - Product set code, this will limit further calculations
++ `merchantUrls` (MerchantUrls, required) - Collection of partner's URLs used for redirection of a customer back to a partner website or as a notification endpoint
+
+
+## ApplicationBase (object)
+Financing application base information
+
+### Properties
++ `id`: `01-11200a0ee1` (string, required) - Unique identifier in HCO
++ `state` (enum, required) - Application state.
+    + `PROCESSING` - Application is being processed by HC
+    + `READY` - Application was approved and is ready for financing
+    + `REJECTED` - Application was rejected
+    + `CANCELLED` - Application was cancelled by client, either before approval or after delivery
++ `stateReason`: `PROCESSING_APPROVED` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
+    + `PROCESSING_REDIRECT_NEEDED` - Redirect to HC is needed. Redirect user to `gatewayRedirectUrl`.
+    + `PROCESSING_NEW` - New application created
+    + `PROCESSING_PREAPPROVED` - Preliminary approval by HC
+    + `REJECTED` - Rejected by HC
+    + `PROCESSING_APPROVED` - Approved by HC, to be signed by client
+    + `PROCESSING_REVIEW` - Manual review by HC in progress
+    + `PROCESSING_ALT_OFFER` - Alternative offered to client
+    + `PROCESSING_SIGNED` - Signed by client, to verification by HC
+    + `CANCELLED_NOT_PAID` - Cancelled before delivery
+    + `READY_TO_SHIP` - Financing approved, goods ready to be shipped to client
+    + `READY_SHIPPED` - Goods shipped to client
+    + `READY_DELIVERING` - Verification of goods delivery
+    + `READY_DELIVERED` - Goods delivered to client
+    + `READY_PAID` - Paid to merchant
+    + `CANCELLED_RETURNED` - Cancelled after delivery, goods returned to merchant
+
+## Application (ApplicationBase)
+Financing application
+
+### Properties
++ `customer` (Customer, optional) - Customer data
++ `order` (Order, required) - Order data
++ `type` (enum, required) - Financing type
+    + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
++ `settingsInstallment` (object, optional) - Settings for INSTALLMENT Application type.
+    + `preferredMonths`: 10 (number, optional) - Preferred number of installments (in months)
+    + `preferredInstallment` (Amount, optional) - Preferred repayment amount
+    + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
+    + `productCode`: `a122ax` (string, optional) - Product code, this indicates previous calculation result
+    + `productSetCode`: `bc11523` (string, optional) - Product set code, this will limit further calculations
++ `gatewayRedirectUrl` (string, required) - Gateway redirect URL. Redirect user to this URL if state is `PROCESSING` and stateReason is `PROCESSING_REDIRECT_NEEDED`.
+
+
+## CustomerBase (object)
+Customer data
+
+### Properties
++ `firstName`: `John` (string, optional) -  Customer first (given) name. Must be paired with `lastName`. Required if `fullName` is empty.
++ `lastName`: `Newborn` (string, optional) - Customer last (family) name. Must be paired with `firstName`. Required if `fullName` is empty.
++ `fullName`: `Ing. John Newborn, Csc.` (string, optional) - Customer full name, including academical degrees and salutation. Required only if `firstName` and `lastName` are empty.
++ `email`: `john.newborn@country.com` (string, required) - E-mail address of customer
++ `phone`: `+420123456789` (string, required) - Phone number with country code (including leading `+`)
++ `addresses` (array[Address], optional) - Addresses. All types are allowed.
++ `tin`: `12333321` (string, optional) - Tax identification number (ICO)
+
+## Customer (CustomerBase)
+TBD to delete Customer data
+
+### Properties
++ `type` (enum, required) - TBD to delete Customer type. aktuálně vůbec nevracíme customera
+    + `UNKNOWN` - Customer is uknown for HCO.
+    + `FIRST_ORDER` - HCO knows the customer. Customer has no paid orders.
+    + `FULL` -  HCO knows the customer. Customer has at least one paid order.
+    + `BLOCKED` - HCO knows the customer. Customer is blocked.
++ `dueDateCategory` (enum, required) TBD to delete aktuálně vůbec nevracíme customera
+    + `CATEGORY_CLASSIC` - customer with classic due date (14 days, with the exception of events (Christmas, etc.))
+    + `CATEGORY_EXTENDED` - customer with extended due date (20th day of next month, with the exception of events (Christmas, etc.))
+
+## ApplicationRequestCustomer (CustomerBase)
+Customer data
+
+### Properties
++ `ipAddress`: `172.10.10.1` (string, optional) - IPv4 or IPv6 address of a customer.
++ `fingerprintComponents` (array[KeyValue], optional) - Fingerprints components.  Fill this property with data created with HCO JS library.
++ `extraData` (CustomerExtraData, optional) - Additional data, that may improve the approval probability.
+
+
+## CustomerExtraData (object)
+
+### Properties
++ `transactionsNumber`: 10 (number, optional) - Historical count of customer's cash transactions made in partner's e-shop
++ `cashlessTransactionsNumber`: 5 (number, optional) - Historical count of customer's cashless transactions made in partner's e-shop
++ `transactionsSum` (Amount, optional) - Sum of all cash transactions made in partner's e-shop
++ `cashlessTransactionsSum` (Amount, optional) - Sum of all cashless transactions made in partner's e-shop
++ `latestTransactionDate`: `2017-01-10` (string, optional) - Newest transaction date on partner e-shop.
++ `earliestTransactionDate`: `2015-10-12` (string, optional) - Oldest transaction date on partner e-shop
++ `pageTotalTime`: 250 (number, optional) - Total time spent on partners website (in seconds)
++ `pageReviewsTime`: 100 (number, optional) - Total time spent on partners website in review and comments sections (in seconds)
++ `cartItemsRemoved`: 2 (number, optional) - Total count of removed items form shopping basket during current shopping
++ `itemsViewed`: 10 (number, optional) - Number of viewed pages with products
+
+
+## OrderChangeRequest (object)
++ order (OrderChange, required) - Changed order data.
++ reason (string, optional) - Reason of change.
+
+## OrderChange (object)
++ `number`: `AA234` (string, optional) - Order number (internal for e-shop)
++ `variableSymbols` (array[string], optional) - Variable symbols (internal for e-shop)
+
+
+## ApplicationCancelRequest (object)
+Specification of the reason why the application is cancelled.
+
+### Properties
++ `reason`: `APPLICATION_CANCELLED_BY_CUSTOMER` (enum, optional) - Reason of cancellation. Considered as `APPLICATION_CANCELLED_OTHER` if not set.
+    + `APPLICATION_CANCELLED_CARRIER_CHANGED` - Order carrier changed
+    + `APPLICATION_CANCELLED_CART_CONTENT_CHANGED` - Cart content changed or customer returned from the cart
+    + `APPLICATION_CANCELLED_BY_CUSTOMER` - Customer cancelled order (in his profile or through customer center)
+    + `APPLICATION_CANCELLED_BY_ERP` - Cancelled by e-shop's back-office process (e.g. some items unavailable)
+    + `APPLICATION_CANCELLED_EXPIRED` - Application expired (too long waiting time for response from HC)
+    + `APPLICATION_CANCELLED_UNFINISHED` - Customer did not finish order
+    + `APPLICATION_CANCELLED_BY_ESHOP_RULES` - Internal e-shop rules breached (e.g. problem with customer's additional data)
+    + `APPLICATION_CANCELLED_OTHER` - Other reason - specified in `customReason`
++ `customReason` (string, optional) - Specification of `APPLICATION_CANCELLED_OTHER` reason
+
+
+## OrderBase (object)
+Order information, needed to create an application.
+
+### Properties
++ `number`: `AA234` (string, required) - Order number (internal for e-shop)
++ `variableSymbols` (array[string], optional) - Variable symbols (internal for e-shop). For the financing type `INSTALLMENT` the first VS in this array is used as the VS of the reconciliation payment.
++ `totalPrice` (Amount, required) - Total order amount, including VAT
++ `totalVat` (array[VatAmount], required) - Total VAT amounts split by their VAT rates
++ `addresses` (array[Address], required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
++ `deliveryType` (enum, optional) - Delivery type, for `DELIVERY_CARRIER` type can be further specified by `deliveryCarrier` attribute.
+    + `DELIVERY_CARRIER` - If delivered by carrier - use `deliveryCarrier` for further specification.
+    + `PERSONAL_BRANCH` - Personal collection at branch
+    + `PERSONAL_PARTNER` - Personal collection at partner network
+    + `ONLINE` - Online delivery (e.g. for intangible assets)
++ `reservationDate`: `2017-07-15T00:00:00+02:00` (string, optional) - Date and time until order is reserved. After this date and time, e-shop does not guarantee items availability (e.g. if application processing is longer, it may endanger order fullfillment).
++ `items` (array[ApplicationRequestOrderItem], required) - Order items
+
+
+
+## Order (OrderBase)
+Order information.
+
+### Properties
++ `state` (enum, required) - Order state.
+    + `PROCESSING` - Order is being processed by merchant
+    + `SENT` - All order items was sent to customer
+    + `DELIVERED` - All order items was delivered to customer
+    + `RETURNED` - All order items was returned to merchant
+    + `CANCELLED` - Order was fully cancelled
++ `items` (array[OrderItem], required) - Order items
+
+## OrderExtended (Order)
+Additional information about Application.
+
+### Properties
++ `applicationInfo` (ApplicationBase, required) - Base information about respective application
+
+
+## OrderItemBase (object)
+Order item base information, needed to identify order item
+
+### Properties
++ `code`: `EXC4677-1a` (string, required) - Internal code for item (internal to e-shop). Used to better identify the item for future changes
++ `ean`: 888462064002 (string, optional) - EAN code.
++ `name`: `iPhone 6s 32GB SpaceGray` (string, required) - Item name
++ `quantity`: 1 (number, optional) - Item quantity. If empty, considered as 1.
+
+
+## ApplicationRequestOrderItem (OrderItemBase)
+Order item information, needed to create an application.
+
+### Properties
++ `type` (enum, optional) - Item type
+    + `PHYSICAL`
+    + `DISCOUNT`
+    + `SHIPPING_FEE`
+    + `SALES_TAX`
+    + `DIGITAL`
+    + `GIFT_CARD`
+    + `STORE_CREDIT`
+    + `FEE`
+    + `INSURANCE`
++ `producer`: `Apple` (string, optional)
++ `unitPrice` (Amount, optional) - Price per one piece. If empty, automatically considered that `unitPrice` is `totalPrice` / `quantity`.
++ `unitVat` (VatAmount, optional) - VAT amount per one piece. If empty, automatically considered that `unitVat` is `totalVat` / `quantity`.
++ `totalPrice` (Amount, required) - Total price for all pieces, VAT inclusive
++ `totalVat` (VatAmount, required) - Total VAT amount for all pieces
++ `image` (File, optional) - Item image
+
+
+## OrderItem (ApplicationRequestOrderItem)
+Order item information.
+
+### Properties
++ `state` (enum, required) - Order state.
+    + `PROCESSING` - Oorder item delivery is being processed by merchant
+    + `SENT` - Items wa sent to customer
+    + `DELIVERED` - Order item was delivered to customer
+    + `RETURNED` - Order item was returned to merchant
+    + `CANCELLED` - Order item was cancelled
+
+## Address (object)
+Address
+
+### Properties
++ `name`: `John Doe` (string, optional) - Name on address
++ `country`: `CZ` (string, required)
+
+    Country.
+
+    (see [ISO 3166 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2))
+
++ `city`: `Prague` (string, required) - City.
++ `streetAddress`: `Letenská` (string, required) - Street/city part.
++ `streetNumber`: `22` (string, required) - Street number
++ `zip`: `140 00` (string, required) - Postal code
++ `addressType` (enum, required) - Type of the address. Only some of the types are allowed in each context.
+    + `PERMANENT` - Permanent residential address
+    + `CONTACT` - Contact address
+    + `DELIVERY` - Delivery address
+    + `BILLING` - Billing address
+
+
+## MerchantUrls (object)
+Collection of URLs used for redirection of a customer back to a partner website or as a notification endpoint
+
+### Properties
++ `approvedRedirect` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application approval. Do not implement any business logic on accessing this URL by customer. Implement business logic to READY notification via `notificationEndpoint`.
++ `rejectedRedirect` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application rejection.  Do not implement any business logic on accessing this URL by customer. Implement business logic to REJECTED notification via `notificationEndpoint`.
++ `notificationEndpoint` (string, required) - URL of the partner used as a notification endpoint for obtaining important updates about application (approval, rejection, storno, etc.).
+
+
+## File (object)
+
+### Properties
++ `filename`: `filename.jpg` (string, required) - File name.
++ One Of
+    + `content`: `RmlsZSBjb250ZW50cy4gwq9cXyjjg4QpXy/Crw==` (string, required) - File content (Base64 encoded, maximum size of encoded string is 500kB)
+    + `url`: `https://www.partner.com/file?id=12345` (string, required) - File URL.
+
+
+## InstallmentProgram (object)
+Installment programs
+
+### Properties
++ `productCode`: `a122ax` (string, required) - Installment program product code
++ `type` (enum, optional) - Program type
+    + MINIMAL - Lowest installment
+    + FAVOURITE - Recommended (favourite) installment program
+    + OTHER - Other
++ `installment` (Amount, optional) - monthly installment amount
++ `numberOfInstallments`: 10 (number, optional) - installment count
++ `detail` (CalculationDetail, optional)
+    Calculation detailed information.
+    Only available for calculations received by calling `POST /installmentPrograms`
+    Not available for `POST /installmentProgramsOffers/`
+
+
+## InstallmentPrograms (object)
++ `installmentPrograms` (array[InstallmentProgram], fixed-type, required) - Array with installment programs offer
+
+
+## CalculationDetail (object)
+
+### Properties
++ `installmentDay`: 20 (number, optional)
+    Installment date (day in month)
+
++ `installmentFirstDate`: `2017-05-20` (string, optional)
+    Date of the first installment
+
++ `installmentLastDate`: `2018-03-20` (string, optional)
+    Date of the last installment
+
++ `annualInterestRate`: 0.17 (number, optional)
+    Annual interest rate
+
++ `predictedProvisionDate`: `2017-05-20` (string, optional)
+    Predicted provision date
+
++ `paidBack` (Amount, optional) - Total amount paid by customer
++ `rpsn`: 0.23 (number, optional)
+    RPSN
+
++ `legalline`: "Uvedené hodnoty jsou spočítány k datu poskytnutí 18.1.2017, datu 1. splátky 20.1.2017 a se splatností všech dalších splátek k 20. dni v měsíci počítaje 20.1.2017. Nejedná se o nabídku či veřejnou nabídku. Platí při splnění podmínek Home Credit...." (string, optional)
+    Text interpretation of the offer
+
+
+## InstallmentProgramsDownPayments (object)
+Down payments information - the lowest down payment possible, the maximum down payment possible and a size of one step between them.
+
+### Properties
++ `minimum` (Amount, optional)
+    The lowest down payment amount
+    e.g. 0 (0 Kč)
++ `maximum` (Amount, optional)
+    Maximum down payment amount
+    e.g. 2500 (2 500 Kč)
++ `step` (Amount, optional)
+    Size of one step between the lowest and maximum down payment amounts
+    e.g. 500 (500 Kč)
+    Available down payments could be (min 0, max 2500):
+    0, 500, 1000, 1500, 2000, 2500
+
+
+## InstallmentProgramsRequest (object)
++ `productCode`: `a122ax` (string, required) - Product code, this indicates previous calculation result
++ `price` (Amount, required) - Goods price
++ `downPayment` (Amount, optional) - Down payment amount (default is 0, amount should be rounded to hundreds)
+
+
+## InstallmentProgramsOffersRequest (object)
++ `productSetCode`: `COCHCONL` (string, optional) - Product set code, this will limit further calculations. If not provided, default productSet will be used.
++ `price` (Amount, required) - Order price
++ `downPayment` (Amount, optional) - Down payment amount (default is 0, amount should be rounded to hundreds)
+
+
+## InstallmentProgramsDownPaymentsRequest (object)
++ `productSetCode`: `COCHCONL` (string, required) - Product set code, this will limit further calculations
++ `price` (Amount, required) - Goods price
+
+## Amount (object)
+Financial amount
+
+### Properties
++ `amount`: 12590 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `currency`: `CZK` (string, required) - Amount currency. [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+
+## VatAmount (Amount)
+Financial amount with VAT rate.
+
+### Properties
++ `vatRate`: 15 (number, required) - VAT rate as natural number (15 represents 15% rate)
+
+## ApiInfo (object)
+API information
+
+### Properties
++ `build` (object, required)
+    + `version`: `38.3.0-0-SNAPSHOT` (string, required) - ATL version
+    + `artifact`: `atl-cs-app` (string, required) - Maven artifact name
+    + `name`: `ATL CS - App` (string, required) - Official artifact name (human readable)
+    + `group`: `eu.homecredit.openapi-cs` (string, required) - Artifact group name
+    + `time`: 1510739838000 (number, required) - Artifact (build) creation time (timestamp)
+
+
+
+
+## NotificationRequest (ApplicationBase)
++ `orderNumber`: `AA234` (string, required) - Order number (internal for e-shop)
++ `notificationDate`: `2017-07-15T00:00:00+02:00` (string, required) – Date of change of application status.
++ `checkSum`: `443E150D3406F6A8DC62C1DB224AFDD84FA9907071BB1AD9B2C7701031793662191501B26AADF3A31361341EA176C80B23D8A9A5E5B5219538289945FE0C20A7` (string, required)
+
+## KeyValue (object)
++ `key`: `property` (string, required) - Key
++ `value` (object, required) - Value
+
+## Error (object)
++ code: `ERR_1000_SOME_ERROR_CODE` (string, required) - Unique internal error code
++ message: `Some error/validation message description` (string, required) - Human readable error description (non-localized)
++ severity (enum, required)
+    + ERROR - Critical error, execution cannot continue. This MUST be indicated also by appropriate HTTP status code
+    + WARN - Non-critical error, execution can continue but further user interaction is advisable. This MIGHT be indicated also by appropriate HTTP status code
+    + INFO - Information only, execution can continue without user interaction
++ attribute: `personalBirthNumber` (string, optional) - JSON path of request attribute that caused the error (if applicable)
++ ticketId: `UAT1:AMS:20160516-091658.450:45e4` (string, optional) - Internal ticket ID, used for error backtracking
+
+## Errors (object)
++ errors (array[Error], fixed-type, required) - Array with errors
+
+## PagingInfo (object)
++ itemsPerPage: 10 (number, required) - Number of items per page
++ nextPage: `transactions?sort=category&limit=10&after=25` (string, optional) - Request to retrieve next page, if it exists and can be unambiguously specified
++ prevPage: `transactions?sort=category&limit=10&before=25` (string, optional) - Request to retrieve previous page, if it exists and can be unambiguously specified
