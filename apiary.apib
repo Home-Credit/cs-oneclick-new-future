@@ -4,10 +4,11 @@ HOST: https://api.homecredit.cz
 # CS - OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.06.27.043967f3a05d196d123c09467cf1c42d2bc73316`
+> Version of documentation: `1.07.10.03d5acbceab503bace3d62f29de843d793a0f074`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
+| 1.07.10 | CS46    | 28.8.2018    | Merchantsite notifications - 1 attribute has been added (sequenceNumber)  |
 | 1.06.27 | CS46    | 28.8.2018    | Merchantsite notifications - 3 attributes have been added (checkSum, notificationDate, orderNumber)  |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.customer - following attributes have been removed: titleBefore, titleAfter, vatin |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.order - following attributes have been removed: deliveryCarrier, documents |
@@ -71,81 +72,6 @@ It is necessary to fill in all attributes marked as required in the request but 
 - we use camelCase for all object and attribute names
 - we use CAPITAL_UNDERSCORE for enum values
 - we use plural in resource names
-
-## Paging
-- some resources (stated in documentation) that return collection of objects support pagination. We are using technique known as 'cursor-based pagination'.
-- on request:
-  - query parameter `limit` specifies maximum number of objects in returned collection
-  - query parameter `after` specifies last object retrieved in previous request. Its value is usually `id` of last object retrieved in previous call, but this will be stated in documentation. Parameter `after` is used when traversing collection forwards.
-  - query parameter `before` specifies first object retrieved in previous request (analogy to `after` parameter), and is used when traversing collection backwards.
-  - if `before` and `after` are omitted, beginning of collection is returned, using specified sort order
-  - items in collection are always sorted accoridng to attribute which could be passed in after/before parameters. Even if you specify different sorting order, this attribute will be last sorting criterion; if you do not specify sorting order, result collection will be sorted according to this attribute.
-- on response:
-  - `pagingInfo` object is returned as part of response body with following attributes:
-    - _nextPage_ - request to retrieve next page. Either nextPage or previousPage is returned, depending whether you specify `after` or `before` parameter. If you specify neither `before` nor `after` parameter, these attributes will be omitted from response.
-    - _prevPage_ - request to retrieve previous page (see `nextPage` attribute description above).
-    - _itemsPerPage_ - number of items per page
-
-
-Example request:
-```
-curl -X GET https://api.homecredit.cz/financing/v1/examples?sort=category&limit=10&after=15
-```
-
-Example response pagingInfo:
-
-```javascript
-"pagingInfo": {
-    "nextPage": "/examples?sort=category&limit=10&after=15"
-    "itemsPerPage": 10,
-}
-```
-
-## Sorting
-- some resources (stated in documentation) supports result sorting. You can specify sorting attributes and order using `sort` request parameter. For ascending order, specify just attribute name; for descending order, add unary - in front of attribute name. You can specify multiple attributes for sorting, separated by comma.
-- each resource that supports sorting specifies list of attributes that can be used for sorting.
-
-Examples:
-- `/public/fxrates?sort=currencyCode` - get list of FX rates sorted by attribute currencyCode
-- `/public/branches?sort=-name` - get list of branches, sorted by attribute name in descending order
-- `/banking/accounts?sort=accountType,-accountCurrency,accountName` - get list of accounts, sorted by type (ascending), then by currency descending and then by account name (ascending)
-
-
-## Filtering
-Some resources (stated in documentation) supports results filtering. Such resources have list of filters specified together with possible resources and possible values.
-
-You can specify filtering by passing `filter` attribute. General pattern to specify filter is:
-
-`<filterName>|<operator>|<values>`
-
-- `filterName` - filter name from documentation
-- `operator` - operator, specified in resource documentation
-- `values` - one or more values for filter. Multiple values are separated by comma
-
-Multiple filters can be specified on each request, separated by semi-colon. They are joined by "AND", so each result item must satisfy all conditions.
-
-
-### Filtering examples
-- get a list of partners with category in (1, 5, 10)
-```
-GET /general/partners?filter=category|in|1,5,10
-```
-
-- get a list of contracts with contractDate in (2016-02-10, 2016-04-28>
-```
-GET /general/contracts?filter=contractDate|gt|2016-02-10;contractDate|lteq|2016-04-28
-```
-
-
-### List of operators
-| Operator | Meaning                |
-| ---      | ---                    |
-| lt       | less than              |
-| lteq     | less than or equals    |
-| eq       | equals                 |
-| gteq     | greater than or equals |
-| gt       | greater than           |
-| in       | value in list          |
 
 
 ## Request restrictions
@@ -400,15 +326,65 @@ In other cases, you receive one of the following errors:
 ### Create application [POST]
 Create new *application* of particular financing type
 
-+ Request (application/json; charset=utf-8)
++ Request Valid (application/json; charset=utf-8)
     + Attributes (ApplicationRequest)
+      + `customer` (ApplicationRequestCustomer, required) - Customer information
+          + `addresses` (array[Address], required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
+              + Sample
+                  + (object)
+                      + `name`: `John Newborn`
+                      + `country`: `CZ`
+                      + `city`: `Prague`
+                      + `streetAddress`: `Letenská`
+                      + `streetNumber`: `22`
+                      + `zip`: `140 00`
+                      + `addressType`: `CONTACT`
+      + `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
+          + `preferredInstallment` (Amount, optional) - Preferred repayment amount
+              + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+          + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
+              + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
-
-+ Response 200(application/json; charset=utf-8)
++ Response 201(application/json; charset=utf-8)
 
         Application was created
 
     + Attributes (Application)
+      + `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
+          + `preferredInstallment` (Amount, optional) - Preferred repayment amount
+              + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+          + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
+              + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+
++ Request Repeated Valid (application/json; charset=utf-8)
+    + Attributes (ApplicationRequest)
+      + `customer` (ApplicationRequestCustomer, required) - Customer information
+          + `addresses` (array[Address], required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
+              + Sample
+                  + (object)
+                      + `name`: `John Newborn`
+                      + `country`: `CZ`
+                      + `city`: `Prague`
+                      + `streetAddress`: `Letenská`
+                      + `streetNumber`: `22`
+                      + `zip`: `140 00`
+                      + `addressType`: `CONTACT`
+      + `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
+          + `preferredInstallment` (Amount, optional) - Preferred repayment amount
+              + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+          + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
+              + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+
++ Response 200(application/json; charset=utf-8)
+
+        Application was created in the past (nothing changed)
+
+    + Attributes (Application)
+      + `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
+          + `preferredInstallment` (Amount, optional) - Preferred repayment amount
+              + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+          + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
+              + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 
 + Response 400(application/json; charset=utf-8)
@@ -1009,7 +985,22 @@ Notify partner about changes in application.
 
 + Request (application/json; charset=utf-8)
     + Attributes (NotificationRequest)
-
+        + `stateReason`: `PROCESSING_APPROVED` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
+           + `PROCESSING_REDIRECT_NEEDED` - Redirect to HC is needed. Redirect user to `gatewayRedirectUrl`.
+           + `PROCESSING_NEW` - New application created
+           + `PROCESSING_PREAPPROVED` - Preliminary approval by HC
+           + `REJECTED` - Rejected by HC
+           + `PROCESSING_APPROVED` - Approved by HC, to be signed by client
+           + `PROCESSING_REVIEW` - Manual review by HC in progress
+           + `PROCESSING_ALT_OFFER` - Alternative offered to client
+           + `PROCESSING_SIGNED` - Signed by client, to verification by HC
+           + `CANCELLED_NOT_PAID` - Cancelled before delivery
+           + `READY_TO_SHIP` - Financing approved, goods ready to be shipped to client
+           + `READY_SHIPPED` - Goods shipped to client
+           + `READY_DELIVERING` - Verification of goods delivery
+           + `READY_DELIVERED` - Goods delivered to client
+           + `READY_PAID` - Paid to merchant
+           + `CANCELLED_RETURNED` - Cancelled after delivery, goods returned to merchant
 
 + Response 200 (application/json; charset=utf-8)
 
@@ -1048,26 +1039,20 @@ Financing application request
 + `order` (OrderBase, required) - Order information
 + `type` (enum, required) - Financing type
     + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
-+ `settingsInstallment` (object, optional) - Settings for INSTALLMENT Application type.
-    + `preferredMonths`: 10 (number, optional) - Preferred number of installments (in months)
-    + `preferredInstallment` (Amount, optional) - Preferred repayment amount
-    + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
-    + `productCode`: `a122ax` (string, optional) - Product code, this indicates previous calculation result
-    + `productSetCode`: `bc11523` (string, optional) - Product set code, this will limit further calculations
++ `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
 + `merchantUrls` (MerchantUrls, required) - Collection of partner's URLs used for redirection of a customer back to a partner website or as a notification endpoint
-
 
 ## ApplicationBase (object)
 Financing application base information
 
 ### Properties
 + `id`: `01-11200a0ee1` (string, required) - Unique identifier in HCO
-+ `state` (enum, required) - Application state.
++ `state`: `PROCESSING` (enum, required) - Application state.
     + `PROCESSING` - Application is being processed by HC
     + `READY` - Application was approved and is ready for financing
     + `REJECTED` - Application was rejected
     + `CANCELLED` - Application was cancelled by client, either before approval or after delivery
-+ `stateReason`: `PROCESSING_APPROVED` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
++ `stateReason`: `PROCESSING_REDIRECT_NEEDED` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
     + `PROCESSING_REDIRECT_NEEDED` - Redirect to HC is needed. Redirect user to `gatewayRedirectUrl`.
     + `PROCESSING_NEW` - New application created
     + `PROCESSING_PREAPPROVED` - Preliminary approval by HC
@@ -1090,15 +1075,10 @@ Financing application
 ### Properties
 + `customer` (Customer, optional) - Customer data
 + `order` (Order, required) - Order data
-+ `type` (enum, required) - Financing type
++ `type`:  `INSTALLMENT` (enum, required) - Financing type
     + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
-+ `settingsInstallment` (object, optional) - Settings for INSTALLMENT Application type.
-    + `preferredMonths`: 10 (number, optional) - Preferred number of installments (in months)
-    + `preferredInstallment` (Amount, optional) - Preferred repayment amount
-    + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
-    + `productCode`: `a122ax` (string, optional) - Product code, this indicates previous calculation result
-    + `productSetCode`: `bc11523` (string, optional) - Product set code, this will limit further calculations
-+ `gatewayRedirectUrl` (string, required) - Gateway redirect URL. Redirect user to this URL if state is `PROCESSING` and stateReason is `PROCESSING_REDIRECT_NEEDED`.
++ `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
++ `gatewayRedirectUrl`: `https://www.ourloan.cz/application/11200a0ee1` (string, required) - Gateway redirect URL. Redirect user to this URL if state is `PROCESSING` and stateReason is `PROCESSING_REDIRECT_NEEDED`.
 
 
 ## CustomerBase (object)
@@ -1109,7 +1089,7 @@ Customer data
 + `lastName`: `Newborn` (string, optional) - Customer last (family) name. Must be paired with `firstName`. Required if `fullName` is empty.
 + `fullName`: `Ing. John Newborn, Csc.` (string, optional) - Customer full name, including academical degrees and salutation. Required only if `firstName` and `lastName` are empty.
 + `email`: `john.newborn@country.com` (string, required) - E-mail address of customer
-+ `phone`: `+420123456789` (string, required) - Phone number with country code (including leading `+`)
++ `phone`: `+420777123456` (string, required) - Phone number with country code (including leading `+`)
 + `addresses` (array[Address], optional) - Addresses. All types are allowed.
 + `tin`: `12333321` (string, optional) - Tax identification number (ICO)
 
@@ -1180,12 +1160,12 @@ Order information, needed to create an application.
 
 ### Properties
 + `number`: `AA234` (string, required) - Order number (internal for e-shop)
-+ `variableSymbols` (array[string], optional) - Variable symbols (internal for e-shop). For the financing type `INSTALLMENT` the first VS in this array is used as the VS of the reconciliation payment.
++ `variableSymbols`: `123456`, `1234567` (array[string], optional) - Variable symbols (internal for e-shop). For the financing type `INSTALLMENT` the first VS in this array is used as the VS of the reconciliation payment.
 + `totalPrice` (Amount, required) - Total order amount, including VAT
 + `totalVat` (array[VatAmount], required) - Total VAT amounts split by their VAT rates
 + `addresses` (array[Address], required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
-+ `deliveryType` (enum, optional) - Delivery type, for `DELIVERY_CARRIER` type can be further specified by `deliveryCarrier` attribute.
-    + `DELIVERY_CARRIER` - If delivered by carrier - use `deliveryCarrier` for further specification.
++ `deliveryType`:`PERSONAL_BRANCH` (enum, optional) - Delivery type.
+    + `DELIVERY_CARRIER`
     + `PERSONAL_BRANCH` - Personal collection at branch
     + `PERSONAL_PARTNER` - Personal collection at partner network
     + `ONLINE` - Online delivery (e.g. for intangible assets)
@@ -1198,7 +1178,7 @@ Order information, needed to create an application.
 Order information.
 
 ### Properties
-+ `state` (enum, required) - Order state.
++ `state`: `PROCESSING` (enum, required) - Order state.
     + `PROCESSING` - Order is being processed by merchant
     + `SENT` - All order items was sent to customer
     + `DELIVERED` - All order items was delivered to customer
@@ -1227,7 +1207,7 @@ Order item base information, needed to identify order item
 Order item information, needed to create an application.
 
 ### Properties
-+ `type` (enum, optional) - Item type
++ `type`: `PHYSICAL` (enum, optional) - Item type
     + `PHYSICAL`
     + `DISCOUNT`
     + `SHIPPING_FEE`
@@ -1249,18 +1229,26 @@ Order item information, needed to create an application.
 Order item information.
 
 ### Properties
-+ `state` (enum, required) - Order state.
++ `state`: `PROCESSING` (enum, required) - Order state.
     + `PROCESSING` - Oorder item delivery is being processed by merchant
     + `SENT` - Items wa sent to customer
     + `DELIVERED` - Order item was delivered to customer
     + `RETURNED` - Order item was returned to merchant
     + `CANCELLED` - Order item was cancelled
 
+## SettingsInstallment (object)
++ `preferredMonths`: 6 (number, optional) - Preferred number of installments (in months)
++ `preferredInstallment` (Amount, optional) - Preferred repayment amount
++ `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
++ `productCode`: `COCONL06` (string, optional) - Product code, this indicates previous calculation result
++ `productSetCode`: `COCHCONL` (string, optional) - Product set code, this will limit further calculations
+
+
 ## Address (object)
 Address
 
 ### Properties
-+ `name`: `John Doe` (string, optional) - Name on address
++ `name`: `John Newborn` (string, optional) - Name on address
 + `country`: `CZ` (string, required)
 
     Country.
@@ -1271,7 +1259,7 @@ Address
 + `streetAddress`: `Letenská` (string, required) - Street/city part.
 + `streetNumber`: `22` (string, required) - Street number
 + `zip`: `140 00` (string, required) - Postal code
-+ `addressType` (enum, required) - Type of the address. Only some of the types are allowed in each context.
++ `addressType`: `DELIVERY` (enum, required) - Type of the address. Only some of the types are allowed in each context.
     + `PERMANENT` - Permanent residential address
     + `CONTACT` - Contact address
     + `DELIVERY` - Delivery address
@@ -1282,18 +1270,19 @@ Address
 Collection of URLs used for redirection of a customer back to a partner website or as a notification endpoint
 
 ### Properties
-+ `approvedRedirect` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application approval. Do not implement any business logic on accessing this URL by customer. Implement business logic to READY notification via `notificationEndpoint`.
-+ `rejectedRedirect` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application rejection.  Do not implement any business logic on accessing this URL by customer. Implement business logic to REJECTED notification via `notificationEndpoint`.
-+ `notificationEndpoint` (string, required) - URL of the partner used as a notification endpoint for obtaining important updates about application (approval, rejection, storno, etc.).
++ `approvedRedirect`: `https://www.youreshop.cz` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application approval. Do not implement any business logic on accessing this URL by customer. Implement business logic to READY notification via `notificationEndpoint`.
++ `rejectedRedirect`: `https://www.youreshop.cz/kosik` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application rejection.  Do not implement any business logic on accessing this URL by customer. Implement business logic to REJECTED notification via `notificationEndpoint`.
++ `notificationEndpoint`: `https://www.youreshop.cz/order/AA234` (string, required) - URL of the partner used as a notification endpoint for obtaining important updates about application (approval, rejection, storno, etc.).
 
 
 ## File (object)
 
 ### Properties
-+ `filename`: `filename.jpg` (string, required) - File name.
++ `filename`: `iphone6s.jpg` (string, required) - File name.
 + One Of
+    + `url`: `https://i.cdn.nrholding.net/32523771/2000/2000` (string, required) - File URL.
     + `content`: `RmlsZSBjb250ZW50cy4gwq9cXyjjg4QpXy/Crw==` (string, required) - File content (Base64 encoded, maximum size of encoded string is 500kB)
-    + `url`: `https://www.partner.com/file?id=12345` (string, required) - File URL.
+
 
 
 ## InstallmentProgram (object)
@@ -1380,13 +1369,14 @@ Down payments information - the lowest down payment possible, the maximum down p
 Financial amount
 
 ### Properties
-+ `amount`: 12590 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
-+ `currency`: `CZK` (string, required) - Amount currency. [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `amount`: 1259950 (number, required) - Amount in minor units (1259950 represents 12599,50 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `currency`: `CZK` (string, required) - Amount currency. [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Currenty only CZK is allowed.
 
 ## VatAmount (Amount)
 Financial amount with VAT rate.
 
 ### Properties
++ `amount`: 188992 (number, required) - Amount in minor units (188992 represents 1889,92 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `vatRate`: 15 (number, required) - VAT rate as natural number (15 represents 15% rate)
 
 ## ApiInfo (object)
@@ -1406,11 +1396,17 @@ API information
 ## NotificationRequest (ApplicationBase)
 + `orderNumber`: `AA234` (string, required) - Order number (internal for e-shop)
 + `notificationDate`: `2017-07-15T00:00:00+02:00` (string, required) – Date of change of application status.
-+ `checkSum`: `443E150D3406F6A8DC62C1DB224AFDD84FA9907071BB1AD9B2C7701031793662191501B26AADF3A31361341EA176C80B23D8A9A5E5B5219538289945FE0C20A7` (string, required)
++ `checkSum`: `443E150D3406F6A8DC62C1DB224AFDD84FA9907071BB1AD9B2C7701031793662191501B26AADF3A31361341EA176C80B23D8A9A5E5B5219538289945FE0C20A7` (string, required) – Hashed message
++ `sequenceNumber`: 1 (number, required) - Sequence number of notification for corresponding application. Starts at value of 1.
 
 ## KeyValue (object)
-+ `key`: `property` (string, required) - Key
++ `key`: `user_agent` (string, required) - Key
 + `value` (object, required) - Value
+    + Sample
+      + (object)
+          + `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/60.0.3112.91 Safari/537.36 Vivaldi/1.92.917.39`
+      + (object)
+          + `[1920,1040]`
 
 ## Error (object)
 + code: `ERR_1000_SOME_ERROR_CODE` (string, required) - Unique internal error code
