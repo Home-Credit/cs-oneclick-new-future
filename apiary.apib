@@ -1396,6 +1396,13 @@ API information
 ## NotificationRequest (ApplicationBase)
 + `orderNumber`: `AA234` (string, required) - Order number (internal for e-shop)
 + `notificationDate`: `2017-07-15T00:00:00+02:00` (string, required) – Date of change of application status.
++ `orderState` (enum, required) - Order state.
+    + `PROCESSING` - Order is being processed by merchant
+    + `SENT` - All order items was sent to customer
+    + `DELIVERED` - All order items was delivered to customer
+    + `RETURNED` - All order items was returned to merchant
+    + `CANCELLED` - Order was fully cancelled
++ `sentDate`: `2017-07-16T00:00:00+02:00` (string, required) – Date of sending notification (=actual date).
 + `checkSum`: `443E150D3406F6A8DC62C1DB224AFDD84FA9907071BB1AD9B2C7701031793662191501B26AADF3A31361341EA176C80B23D8A9A5E5B5219538289945FE0C20A7` (string, required) – Hashed message
 + `sequenceNumber`: 1 (number, required) - Sequence number of notification for corresponding application. Starts at value of 1.
 
