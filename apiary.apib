@@ -4,10 +4,11 @@ HOST: https://api.homecredit.cz
 # CS - OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.07.10.03d5acbceab503bace3d62f29de843d793a0f074`
+> Version of documentation: `1.07.17.cf27a2822b384b8fe61bd5d3a7988d4db29506c7`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
+| 1.07.17 | CS46    | 28.8.2018    | Application resources.Response - 2 attributes customer.type and customer.dueDateCategory were removed |
 | 1.07.10 | CS46    | 28.8.2018    | Merchantsite notifications - 1 attribute has been added (sequenceNumber)  |
 | 1.06.27 | CS46    | 28.8.2018    | Merchantsite notifications - 3 attributes have been added (checkSum, notificationDate, orderNumber)  |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.customer - following attributes have been removed: titleBefore, titleAfter, vatin |
@@ -1073,7 +1074,7 @@ Financing application base information
 Financing application
 
 ### Properties
-+ `customer` (Customer, optional) - Customer data
++ `customer` (CustomerBase, optional) - Customer data
 + `order` (Order, required) - Order data
 + `type`:  `INSTALLMENT` (enum, required) - Financing type
     + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
@@ -1093,18 +1094,6 @@ Customer data
 + `addresses` (array[Address], optional) - Addresses. All types are allowed.
 + `tin`: `12333321` (string, optional) - Tax identification number (ICO)
 
-## Customer (CustomerBase)
-TBD to delete Customer data
-
-### Properties
-+ `type` (enum, required) - TBD to delete Customer type. aktuálně vůbec nevracíme customera
-    + `UNKNOWN` - Customer is uknown for HCO.
-    + `FIRST_ORDER` - HCO knows the customer. Customer has no paid orders.
-    + `FULL` -  HCO knows the customer. Customer has at least one paid order.
-    + `BLOCKED` - HCO knows the customer. Customer is blocked.
-+ `dueDateCategory` (enum, required) TBD to delete aktuálně vůbec nevracíme customera
-    + `CATEGORY_CLASSIC` - customer with classic due date (14 days, with the exception of events (Christmas, etc.))
-    + `CATEGORY_EXTENDED` - customer with extended due date (20th day of next month, with the exception of events (Christmas, etc.))
 
 ## ApplicationRequestCustomer (CustomerBase)
 Customer data
