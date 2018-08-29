@@ -4,26 +4,27 @@ HOST: https://api.homecredit.cz
 # CS - OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.07.17.cf27a2822b384b8fe61bd5d3a7988d4db29506c7`
+> Version of documentation: `1.07.18.cf27a2822b384b8fe61bd5d3a7988d4db29506c7`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
+| 1.07.18 | ---     | ---          | Documentation fix - CreateApplication reponse object contains attribute gatewayRedirectUrl which is optional  |
 | 1.07.17 | CS46    | 28.8.2018    | Application resources.Response - 2 attributes customer.type and customer.dueDateCategory were removed |
-| 1.07.10 | CS46    | 28.8.2018    | Merchantsite notifications - 1 attribute has been added (sequenceNumber)  |
+| 1.07.10 | CS46    | 28.8.2018    | Merchantsite notifications - 1 attribute has been added (sequenceNumber) |
 | 1.06.27 | CS46    | 28.8.2018    | Merchantsite notifications - 3 attributes have been added (checkSum, notificationDate, orderNumber)  |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.customer - following attributes have been removed: titleBefore, titleAfter, vatin |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.order - following attributes have been removed: deliveryCarrier, documents |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.order.items - following attributes have been removed:  variant, description, categories, productURL |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.merchantURLs - following attributes have been removed: paymentEndpoint, changeEndpoint |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request - following attributes have been removed: - agreementTermsAndConditions, agreementPersonalDataProcessing|
-| 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response.customer - following attributes have been removed: titleBefore, titleAfter, vatin, type, dueDateCategory, ordersCountLimit, ordersCountRemaining |
+| 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response.customer - following attributes have been removed: titleBefore, titleAfter, vatin, ordersCountLimit, ordersCountRemaining |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response.order - following attributes have been removed: deliveryCarrier, documents, deliveryDate, deliveryTrackingNumber, sentDate |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response.order.items - following attributes have been removed:  variant, description, categories, productURL, deliveryDate, deliveryTrackingNumber, sentDate |
 | 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response - following attributes have been removed: agreementTermsAndConditions,agreementPersonalDataProcessing |
 | 1.06.25 | CS46    | 28.8.2018    | Change application order – new resource added |
 | 1.06.25 | CS46    | 28.8.2018    | Change of attributes added to redirect URL (redirection back to eshop pages after completion of financing application process) |
 
-In case of any question, please contact Tomáš Bárta (Tomas.Barta@homecredit.cz).
+In case of any question, please contact our integration department (integrace_eshop@homecredit.cz).
 
 ## Getting started
 This online document describes Home Credit (HC) One-Click API - the means for partner e-shops through which they can offer their customers the benefits of one of Home Credit's payment methods.
@@ -197,7 +198,7 @@ There are 3 levels of error severity:
 # Group Testing & Integration
 This section should help new partner's e-shop developers with better understanding of the API and connected processes especially during early stages of the API integration.
 
-> Temporarily described in separate document (currently written in Czech) "Základní informace k platební metodě HC On-line.docx" obtainable through a request at tomas.barta@homecredit.cz.
+> Temporarily described in separate document (currently written in Czech) "Základní informace k platební metodě HC On-line.docx" obtainable through a request at integrace_eshop@homecredit.cz.
 
 
 # Group Security
@@ -329,7 +330,7 @@ Create new *application* of particular financing type
 
 + Request Valid (application/json; charset=utf-8)
     + Attributes (ApplicationRequest)
-      + `customer` (ApplicationRequestCustomer, required) - Customer information
+      + `customer` (Customer, required) - Customer information
           + `addresses` (array[Address], required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
               + Sample
                   + (object)
@@ -340,26 +341,17 @@ Create new *application* of particular financing type
                       + `streetNumber`: `22`
                       + `zip`: `140 00`
                       + `addressType`: `CONTACT`
-      + `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
-          + `preferredInstallment` (Amount, optional) - Preferred repayment amount
-              + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
-          + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
-              + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 + Response 201(application/json; charset=utf-8)
 
         Application was created
 
     + Attributes (Application)
-      + `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
-          + `preferredInstallment` (Amount, optional) - Preferred repayment amount
-              + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
-          + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
-              + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+
 
 + Request Repeated Valid (application/json; charset=utf-8)
     + Attributes (ApplicationRequest)
-      + `customer` (ApplicationRequestCustomer, required) - Customer information
+      + `customer` (Customer, required) - Customer information
           + `addresses` (array[Address], required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
               + Sample
                   + (object)
@@ -381,12 +373,13 @@ Create new *application* of particular financing type
         Application was created in the past (nothing changed)
 
     + Attributes (Application)
-      + `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
-          + `preferredInstallment` (Amount, optional) - Preferred repayment amount
-              + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
-          + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
-              + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
+
+
++ Request Bad request (application/json; charset=utf-8)
+    + Attributes (ApplicationRequest)
+      + `type`: `INVALID_TYPE` (enum, required) - Financing type
+          + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
 
 + Response 400(application/json; charset=utf-8)
 
@@ -854,7 +847,7 @@ It returns the installment program that most closely matches specified input.
 
 + Response 200(application/json; charset=utf-8)
 Detailed information about installment program
-    + Attributes (InstallmentProgram)
+    + Attributes (InstallmentProgramDetail)
 
 + Response 422(application/json; charset=utf-8)
 No installment program was found
@@ -895,7 +888,7 @@ Error in processing request
 
 
 ## Group JavaScript widget integration
-In order to use Home Credit's javascript widget as an installment calculator, your e-shop back-end has to be configured properly. How to do it is currently described in separate document (currently written in Czech) "Základní informace k platební metodě HC On-line.docx" obtainable through a request at tomas.barta@homecredit.cz.
+In order to use Home Credit's javascript widget as an installment calculator, your e-shop back-end has to be configured properly. How to do it is currently described in separate document (currently written in Czech) "Základní informace k platební metodě HC On-line.docx" obtainable through a request at integrace_eshop@homecredit.cz.
 
 
 # Group Health check
@@ -1036,7 +1029,7 @@ Authenticated partner access token
 Financing application request
 
 ### Properties
-+ `customer` (ApplicationRequestCustomer, required) - Customer information
++ `customer` (Customer, required) - Customer information
 + `order` (OrderBase, required) - Order information
 + `type` (enum, required) - Financing type
     + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
@@ -1079,7 +1072,7 @@ Financing application
 + `type`:  `INSTALLMENT` (enum, required) - Financing type
     + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
 + `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
-+ `gatewayRedirectUrl`: `https://www.ourloan.cz/application/11200a0ee1` (string, required) - Gateway redirect URL. Redirect user to this URL if state is `PROCESSING` and stateReason is `PROCESSING_REDIRECT_NEEDED`.
++ `gatewayRedirectUrl`: `https://www.ourloan.cz/application/11200a0ee1` (string, optional) - Gateway redirect URL. Redirect user to this URL if state is `PROCESSING` and stateReason is `PROCESSING_REDIRECT_NEEDED`.
 
 
 ## CustomerBase (object)
@@ -1095,7 +1088,7 @@ Customer data
 + `tin`: `12333321` (string, optional) - Tax identification number (ICO)
 
 
-## ApplicationRequestCustomer (CustomerBase)
+## Customer (CustomerBase)
 Customer data
 
 ### Properties
@@ -1228,7 +1221,9 @@ Order item information.
 ## SettingsInstallment (object)
 + `preferredMonths`: 6 (number, optional) - Preferred number of installments (in months)
 + `preferredInstallment` (Amount, optional) - Preferred repayment amount
+    + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
+    + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `productCode`: `COCONL06` (string, optional) - Product code, this indicates previous calculation result
 + `productSetCode`: `COCHCONL` (string, optional) - Product set code, this will limit further calculations
 
@@ -1239,9 +1234,7 @@ Address
 ### Properties
 + `name`: `John Newborn` (string, optional) - Name on address
 + `country`: `CZ` (string, required)
-
     Country.
-
     (see [ISO 3166 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2))
 
 + `city`: `Prague` (string, required) - City.
@@ -1273,86 +1266,70 @@ Collection of URLs used for redirection of a customer back to a partner website 
     + `content`: `RmlsZSBjb250ZW50cy4gwq9cXyjjg4QpXy/Crw==` (string, required) - File content (Base64 encoded, maximum size of encoded string is 500kB)
 
 
+## InstallmentPrograms (object)
++ `installmentPrograms` (array[InstallmentProgram], fixed-type, required) - Array with installment programs offer
+
 
 ## InstallmentProgram (object)
 Installment programs
 
 ### Properties
-+ `productCode`: `a122ax` (string, required) - Installment program product code
-+ `type` (enum, optional) - Program type
-    + MINIMAL - Lowest installment
-    + FAVOURITE - Recommended (favourite) installment program
-    + OTHER - Other
++ `productCode`: `COCONL06` (string, required) - Installment program product code
++ `type`: `FAVOURITE` (enum, optional) - Program type
+    + `MINIMAL` - Lowest installment
+    + `FAVOURITE` - Recommended (favourite) installment program
+    + `OTHER` - Other
 + `installment` (Amount, optional) - monthly installment amount
-+ `numberOfInstallments`: 10 (number, optional) - installment count
-+ `detail` (CalculationDetail, optional)
-    Calculation detailed information.
-    Only available for calculations received by calling `POST /installmentPrograms`
-    Not available for `POST /installmentProgramsOffers/`
+    + `amount`: 221900 (number, required) - Amount in minor units (250000 represents 2500 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `numberOfInstallments`: 6 (number, optional) - installment count
 
 
-## InstallmentPrograms (object)
-+ `installmentPrograms` (array[InstallmentProgram], fixed-type, required) - Array with installment programs offer
+## InstallmentProgramDetail (InstallmentProgram)
++ `detail` (CalculationDetail, optional) - Calculation detailed information.
 
 
 ## CalculationDetail (object)
-
-### Properties
-+ `installmentDay`: 20 (number, optional)
-    Installment date (day in month)
-
-+ `installmentFirstDate`: `2017-05-20` (string, optional)
-    Date of the first installment
-
-+ `installmentLastDate`: `2018-03-20` (string, optional)
-    Date of the last installment
-
-+ `annualInterestRate`: 0.17 (number, optional)
-    Annual interest rate
-
-+ `predictedProvisionDate`: `2017-05-20` (string, optional)
-    Predicted provision date
-
++ `installmentDay`: 20 (number, optional) - Installment date (day in month)
++ `installmentFirstDate`: `2018-09-20` (string, optional) - Date of the first installment
++ `installmentLastDate`: `2019-02-20` (string, optional) - Date of the last installment
++ `annualInterestRate`: 0.1743 (number, optional) - Annual interest rate
++ `predictedProvisionDate`: `2018-08-10` (string, optional) - Predicted provision date
 + `paidBack` (Amount, optional) - Total amount paid by customer
-+ `rpsn`: 0.23 (number, optional)
-    RPSN
-
-+ `legalline`: "Uvedené hodnoty jsou spočítány k datu poskytnutí 18.1.2017, datu 1. splátky 20.1.2017 a se splatností všech dalších splátek k 20. dni v měsíci počítaje 20.1.2017. Nejedná se o nabídku či veřejnou nabídku. Platí při splnění podmínek Home Credit...." (string, optional)
-    Text interpretation of the offer
+    + `amount`: 1331400 (number, required) - Amount in minor units (250000 represents 2500 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `rpsn`: 0.19 (number, optional) - RPSN
++ `legalline`: "Každou žádost posuzujeme individuálně a uvedené hodnoty jsme vám spočítali na míru.\nPlatí pro čerpání k 10.08.2018, datum první splátky je k 20.09.2018 a datum dalších splátek vždy k 20. dni v měsíci, počínaje 20.10.2018 a při lhůtě splatnosti 20.02.2019." (string, optional) - Text interpretation of the offer
 
 
 ## InstallmentProgramsDownPayments (object)
 Down payments information - the lowest down payment possible, the maximum down payment possible and a size of one step between them.
 
 ### Properties
-+ `minimum` (Amount, optional)
-    The lowest down payment amount
-    e.g. 0 (0 Kč)
-+ `maximum` (Amount, optional)
-    Maximum down payment amount
-    e.g. 2500 (2 500 Kč)
-+ `step` (Amount, optional)
-    Size of one step between the lowest and maximum down payment amounts
-    e.g. 500 (500 Kč)
-    Available down payments could be (min 0, max 2500):
-    0, 500, 1000, 1500, 2000, 2500
++ `minimum` (Amount, optional) - The lowest down payment amount, e.g. 0 (0 Kč)
+    + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `maximum` (Amount, optional) - Maximum down payment amount, e.g. 2500 (2 500 Kč)
+    + `amount`: 250000 (number, required) - Amount in minor units (250000 represents 2500 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `step` (Amount, optional) - Size of one step between the lowest and maximum down payment amounts, e.g. 500 (500 Kč). Available down payments could be (min 0, max 2500): 0, 500, 1000, 1500, 2000, 2500
+    + `amount`: 50000 (number, required) - Amount in minor units (50000 represents 500 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 
 ## InstallmentProgramsRequest (object)
-+ `productCode`: `a122ax` (string, required) - Product code, this indicates previous calculation result
++ `productCode`: `COCONL06` (string, required) - Product code, this indicates previous calculation result
 + `price` (Amount, required) - Goods price
 + `downPayment` (Amount, optional) - Down payment amount (default is 0, amount should be rounded to hundreds)
+    + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 
 ## InstallmentProgramsOffersRequest (object)
 + `productSetCode`: `COCHCONL` (string, optional) - Product set code, this will limit further calculations. If not provided, default productSet will be used.
 + `price` (Amount, required) - Order price
 + `downPayment` (Amount, optional) - Down payment amount (default is 0, amount should be rounded to hundreds)
+    + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 
 ## InstallmentProgramsDownPaymentsRequest (object)
 + `productSetCode`: `COCHCONL` (string, required) - Product set code, this will limit further calculations
 + `price` (Amount, required) - Goods price
+
 
 ## Amount (object)
 Financial amount
@@ -1361,12 +1338,14 @@ Financial amount
 + `amount`: 1259950 (number, required) - Amount in minor units (1259950 represents 12599,50 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `currency`: `CZK` (string, required) - Amount currency. [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Currenty only CZK is allowed.
 
+
 ## VatAmount (Amount)
 Financial amount with VAT rate.
 
 ### Properties
 + `amount`: 188992 (number, required) - Amount in minor units (188992 represents 1889,92 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `vatRate`: 15 (number, required) - VAT rate as natural number (15 represents 15% rate)
+
 
 ## ApiInfo (object)
 API information
@@ -1378,7 +1357,6 @@ API information
     + `name`: `ATL CS - App` (string, required) - Official artifact name (human readable)
     + `group`: `eu.homecredit.openapi-cs` (string, required) - Artifact group name
     + `time`: 1510739838000 (number, required) - Artifact (build) creation time (timestamp)
-
 
 
 
