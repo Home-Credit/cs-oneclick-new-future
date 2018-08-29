@@ -430,7 +430,7 @@ Get specific *application* detail by ID
 
         Application does not exist
 
-    + Attributes (Errors)
+    + Attributes (ErrorsNotFound)
 
 
 ## Cancel application [/financing/v1/applications/{applicationId}/cancel]
@@ -478,6 +478,12 @@ Cancel *application*.
         Application was cancelled
 
     + Attributes (Application)
+
+
++ Response 404(application/json; charset=utf-8)
+    Application was not found
+
+    + Attributes (ErrorsNotFound)
 
 
 + Response 422(application/json; charset=utf-8)
@@ -542,7 +548,7 @@ In other cases, you receive one of the following errors:
 ### Change application order [PUT]
 Change *order*. Used to change order number and/or variable symbol.
 
-+ Request (application/json; charset=utf-8)
++ Request Example_VALID_REQUEST (application/json; charset=utf-8)
     + Attributes (OrderChangeRequest)
 
 
@@ -551,9 +557,31 @@ Change *order*. Used to change order number and/or variable symbol.
     + Attributes (OrderExtended)
 
 
++ Request Example_INVALID_REQUEST (application/json; charset=utf-8)
+    + Attributes (OrderChangeRequest)
+        + reason: `Too long reason of change application order operation` (string, optional) - Reason of change.
+
++ Response 400(application/json; charset=utf-8)
+    Bad request.
+    + Attributes (Errors)
+
+
++ Request Example_APPLICATION_NOT_FOUND (application/json; charset=utf-8)
+    + Attributes (OrderChangeRequest)
+
++ Response 404(application/json; charset=utf-8)
+    Application not found.
+    + Attributes (ErrorsNotFound)
+
+
++ Request Example_NOT_SUPPORTED (application/json; charset=utf-8)
+    + Attributes (OrderChangeRequest)
+
 + Response 422(application/json; charset=utf-8)
     Order can not be changed.
-    + Attributes (Errors)
+    + Attributes (ErrorsNotSupported)
+
+
 
 
 ## Mark order as sent [/financing/v1/applications/{applicationId}/order/send]
@@ -1382,18 +1410,38 @@ API information
       + (object)
           + `[1920,1040]`
 
+
 ## Error (object)
-+ code: `ERR_1000_SOME_ERROR_CODE` (string, required) - Unique internal error code
-+ message: `Some error/validation message description` (string, required) - Human readable error description (non-localized)
-+ severity (enum, required)
-    + ERROR - Critical error, execution cannot continue. This MUST be indicated also by appropriate HTTP status code
-    + WARN - Non-critical error, execution can continue but further user interaction is advisable. This MIGHT be indicated also by appropriate HTTP status code
-    + INFO - Information only, execution can continue without user interaction
-+ attribute: `personalBirthNumber` (string, optional) - JSON path of request attribute that caused the error (if applicable)
-+ ticketId: `UAT1:AMS:20160516-091658.450:45e4` (string, optional) - Internal ticket ID, used for error backtracking
++ code: `BAD_REQUEST` (string, required) - Unique internal error code
++ message: `Bad request` (string, required) - Human readable error description (non-localized)
++ severity: `ERROR` (enum, required)
+    + `ERROR` - Critical error, execution cannot continue. This MUST be indicated also by appropriate HTTP status code
+    + `WARN` - Non-critical error, execution can continue but further user interaction is advisable. This MIGHT be indicated also by appropriate HTTP status code
+    + `INFO` - Information only, execution can continue without user interaction
++ attribute (string, optional) - JSON path of request attribute that caused the error (if applicable)
++ ticketId (string, optional) - Internal ticket ID, used for error backtracking
 
 ## Errors (object)
 + errors (array[Error], fixed-type, required) - Array with errors
+
+
+
+## ErrorNotFound (Error)
++ code: `APPLICATION_NOT_FOUND` (string, required) - Unique internal error code
++ message: `Application 'NONEXISTING_APPLICATION' not found` (string, required) - Human readable error description (non-localized)
+
+## ErrorsNotFound (object)
++ errors (array[ErrorNotFound], fixed-type, required) - Array with errors
+
+
+## ErrorNotSupported (Error)
++ code: `NOT_SUPPORTED` (string, required) - Unique internal error code
++ message: `Current application status not allows requested operation` (string, required) - Human readable error description (non-localized)
+
+
+## ErrorsNotSupported (object)
++ errors (array[ErrorNotSupported], fixed-type, required) - Array with errors
+
 
 ## PagingInfo (object)
 + itemsPerPage: 10 (number, required) - Number of items per page
