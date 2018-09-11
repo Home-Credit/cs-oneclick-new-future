@@ -33,7 +33,7 @@ The aim of here described services is to allow customers the smooth running thro
 | Group of services                  | Purpose                                                                                                                                                                                           |
 | ---                                | ---                                                                                                                                                                                               |
 | Security                           | Security rules and principles                                                                                                                                                                     |
-| Application resources              | Services that allows processing of *application* and *order* during their whole lifecycle                                                                                                         |
+| Application resources              | Services that allows processing of *application* and *order* during their whole life cycle                                                                                                         |
 | Installments calculator resources  | Services that allow partner e-shops to implement an installment calculator on their websites                                                                                                      |
 | Merchantsite resources             | Services that should be developed and exposed by partner e-shops to allow HC asynchronously inform these partner e-shops about important changes regarding particular *applications* and *orders* |
 | Health check                       | Health check usage description                                                                                                                                                                    |
@@ -79,7 +79,7 @@ It is necessary to fill in all attributes marked as required in the request but 
 Please, keep in mind following restrictions regarding requests:
 - Maximum request size is **10 MB**.
 - Maximum size of accepted single file is **500 kB**.
-- Here is the list of suppported files:
+- Here is the list of supported files:
 
 | MIME type                                                                 | Example(s)                 |
 | ---                                                                       | ---                        |
@@ -110,7 +110,7 @@ Unless stated otherwise, all responses are sent as `Content-Type: application/js
 ## HTTP status codes
 We use following status codes throughout the API, except for OAuth flow when response codes are prescribed in RFC
 - 200 `OK` - request was successful
-- 201 `Created` - request was successfull and resource was created
+- 201 `Created` - request was successful and resource was created
 - 204 `No Content` - we accepted your request but there is nothing to return (e.g. response is empty)
 - 400 `Bad Request` - syntax error, e.g. request is missing required parameters/attributes or parameter values are of incorrect type
 - 401 `Unauthorized` - your API key is wrong or user not authorized (not logged in)
@@ -327,10 +327,10 @@ In other cases, you receive one of the following errors:
 ### Create application [POST]
 Create new *application* of particular financing type
 
-+ Request Valid (application/json; charset=utf-8)
++ Request Example_VALID_REQUEST (application/json; charset=utf-8)
     + Attributes (ApplicationRequest)
       + `customer` (Customer, required) - Customer information
-          + `addresses` (array[Address], required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
+          + `addresses` (array[Address], fixed-type, required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
               + Sample
                   + (object)
                       + `name`: `John Newborn`
@@ -348,10 +348,10 @@ Create new *application* of particular financing type
     + Attributes (Application)
 
 
-+ Request Repeated Valid (application/json; charset=utf-8)
++ Request Example_REPEATED_VALID_REQUEST (application/json; charset=utf-8)
     + Attributes (ApplicationRequest)
       + `customer` (Customer, required) - Customer information
-          + `addresses` (array[Address], required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
+          + `addresses` (array[Address], fixed-type, required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
               + Sample
                   + (object)
                       + `name`: `John Newborn`
@@ -361,11 +361,6 @@ Create new *application* of particular financing type
                       + `streetNumber`: `22`
                       + `zip`: `140 00`
                       + `addressType`: `CONTACT`
-      + `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
-          + `preferredInstallment` (Amount, optional) - Preferred repayment amount
-              + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
-          + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
-              + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 + Response 200(application/json; charset=utf-8)
 
@@ -923,7 +918,7 @@ To easily find out current API state use the [API state check resource](#referen
 To check the availability of back-end services use the [health check resource](#reference/health-check/health-check).
 
 ## API status check [/info]
-If the API is up and runing, you receive HTTP status code 204 and object of information about it.
+If the API is up and running, you receive HTTP status code 204 and object of information about it.
 
 In other cases, you receive one of the following errors:
 | Status code | Code                  |
@@ -950,7 +945,7 @@ Get current state of the API
 
 
 ## API health check [/financing/v1/health{?timeout}]
-If the API back-end services is up and runing, you receive HTTP status code 204.
+If the API back-end services is up and running, you receive HTTP status code 204.
 
 In other cases, you receive one of the following errors:
 | Status code | Code                  |
@@ -1075,7 +1070,6 @@ Financing application base information
     + `CANCELLED` - Application was cancelled by client, either before approval or after delivery
 + `stateReason`: `PROCESSING_REDIRECT_NEEDED` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
     + `PROCESSING_REDIRECT_NEEDED` - Redirect to HC is needed. Redirect user to `gatewayRedirectUrl`.
-    + `PROCESSING_NEW` - New application created
     + `PROCESSING_PREAPPROVED` - Preliminary approval by HC
     + `REJECTED` - Rejected by HC
     + `PROCESSING_APPROVED` - Approved by HC, to be signed by client
@@ -1111,7 +1105,7 @@ Customer data
 + `fullName`: `Ing. John Newborn, Csc.` (string, optional) - Customer full name, including academical degrees and salutation. Required only if `firstName` and `lastName` are empty.
 + `email`: `john.newborn@country.com` (string, required) - E-mail address of customer
 + `phone`: `+420777123456` (string, required) - Phone number with country code (including leading `+`)
-+ `addresses` (array[Address], optional) - Addresses. All types are allowed.
++ `addresses` (array[Address], fixed-type, optional) - Addresses. All types are allowed.
 + `tin`: `12333321` (string, optional) - Tax identification number (ICO)
 
 
@@ -1120,7 +1114,7 @@ Customer data
 
 ### Properties
 + `ipAddress`: `172.10.10.1` (string, optional) - IPv4 or IPv6 address of a customer.
-+ `fingerprintComponents` (array[KeyValue], optional) - Fingerprints components.  Fill this property with data created with HCO JS library.
++ `fingerprintComponents` (array[KeyValue], fixed-type, optional) - Fingerprints components.  Fill this property with data created with HCO JS library.
 + `extraData` (CustomerExtraData, optional) - Additional data, that may improve the approval probability.
 
 
@@ -1145,7 +1139,7 @@ Customer data
 
 ## OrderChange (object)
 + `number`: `AA234` (string, optional) - Order number (internal for e-shop)
-+ `variableSymbols` (array[string], optional) - Variable symbols (internal for e-shop)
++ `variableSymbols`: `123456`, `1234567` (array[string], fixed-type, optional) - Variable symbols (internal for e-shop)
 
 
 ## ApplicationCancelRequest (object)
@@ -1169,17 +1163,17 @@ Order information, needed to create an application.
 
 ### Properties
 + `number`: `AA234` (string, required) - Order number (internal for e-shop)
-+ `variableSymbols`: `123456`, `1234567` (array[string], optional) - Variable symbols (internal for e-shop). For the financing type `INSTALLMENT` the first VS in this array is used as the VS of the reconciliation payment.
++ `variableSymbols`: `123456`, `1234567` (array[string], fixed-type, optional) - Variable symbols (internal for e-shop). For the financing type `INSTALLMENT` the first VS in this array is used as the VS of the reconciliation payment.
 + `totalPrice` (Amount, required) - Total order amount, including VAT
-+ `totalVat` (array[VatAmount], required) - Total VAT amounts split by their VAT rates
-+ `addresses` (array[Address], required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
++ `totalVat` (array[VatAmount], fixed-type, required) - Total VAT amounts split by their VAT rates
++ `addresses` (array[Address], fixed-type, required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
 + `deliveryType`:`PERSONAL_BRANCH` (enum, optional) - Delivery type.
     + `DELIVERY_CARRIER`
     + `PERSONAL_BRANCH` - Personal collection at branch
     + `PERSONAL_PARTNER` - Personal collection at partner network
     + `ONLINE` - Online delivery (e.g. for intangible assets)
 + `reservationDate`: `2017-07-15T00:00:00+02:00` (string, optional) - Date and time until order is reserved. After this date and time, e-shop does not guarantee items availability (e.g. if application processing is longer, it may endanger order fullfillment).
-+ `items` (array[ApplicationRequestOrderItem], required) - Order items
++ `items` (array[ApplicationRequestOrderItem], fixed-type, required) - Order items
 
 
 
@@ -1193,7 +1187,7 @@ Order information.
     + `DELIVERED` - All order items was delivered to customer
     + `RETURNED` - All order items was returned to merchant
     + `CANCELLED` - Order was fully cancelled
-+ `items` (array[OrderItem], required) - Order items
++ `items` (array[OrderItem], fixed-type, required) - Order items
 
 ## OrderExtended (Order)
 Additional information about Application.
