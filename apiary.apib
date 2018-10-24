@@ -4,10 +4,12 @@ HOST: https://api.homecredit.cz
 # CS - OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.07.18.cf27a2822b384b8fe61bd5d3a7988d4db29506c7`
+> Version of documentation: `1.10.24.fcffa83f379f6d9cfa9d1b5c69649ee05a64a4f7`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
+| 1.10.24 | CS49    | 20.11.2018   | New resource '/financing/v1/scorings/precheck' added. For more details see [Precheck operation](#reference/scoring-resources/precheck/create-application) |
+| 1.10.24 | CS49    | 20.11.2018   | New optional attribute `precheckIds` added into createApplication.request (POST `/financing/v1/applications`) |
 | 1.07.17 | CS46    | 28.8.2018    | Application resources.Response - 2 attributes customer.type and customer.dueDateCategory were removed |
 | 1.07.10 | CS46    | 28.8.2018    | Merchantsite notifications - 1 attribute has been added (sequenceNumber) |
 | 1.06.27 | CS46    | 28.8.2018    | Merchantsite notifications - 3 attributes have been added (checkSum, notificationDate, orderNumber)  |
@@ -30,13 +32,13 @@ This online document describes Home Credit (HC) One-Click API - the means for pa
 
 The aim of here described services is to allow customers the smooth running through the process of an online purchase. The services that allow achieving this goal are divided into the following groups:
 
-| Group of services                  | Purpose                                                                                                                                                                                           |
-| ---                                | ---                                                                                                                                                                                               |
-| Security                           | Security rules and principles                                                                                                                                                                     |
-| Application resources              | Services that allows processing of *application* and *order* during their whole life cycle                                                                                                         |
-| Installments calculator resources  | Services that allow partner e-shops to implement an installment calculator on their websites                                                                                                      |
-| Merchantsite resources             | Services that should be developed and exposed by partner e-shops to allow HC asynchronously inform these partner e-shops about important changes regarding particular *applications* and *orders* |
-| Health check                       | Health check usage description                                                                                                                                                                    |
+| Group of services                  | Purpose                                                                                                                                                                                            |
+| ---                                | ---                                                                                                                                                                                                |
+| Security                           | Security rules and principles                                                                                                                                                                      |
+| Application resources              | Resources that allows processing of *application* and *order* during their whole life cycle                                                                                                        |
+| Installments calculator resources  | Resources that allow partner e-shops to implement an installment calculator on their websites                                                                                                      |
+| Merchantsite resources             | Resources that should be developed and exposed by partner e-shops to allow HC asynchronously inform these partner e-shops about important changes regarding particular *applications* and *orders* |
+| Health check                       | Health check usage description                                                                                                                                                                     |
 
 ### Basic implementation
 Basic and minimum way how to implement HCO API is to at least implement:
@@ -304,7 +306,7 @@ Use `/financing/v1/applications` resource with properly filled request that cont
   - Your URL where the customer should be redirected after application approval
   - Your URL where the customer should be redirected after application rejection
   - URL of your notification endpoint you want us to send you notifications about particular application updates
-> \* = Required in case customer has already used installment calculator embedded on your website and selected preferred installment program. See the [Installments calculator resources section](#reference/installments-calculator-resources) for more details about possibility to embed installment calculator on your website. Otherwise optional (except).
+> \* = Must be filled properly in case customer has already used installment calculator embedded on your website and selected preferred installment program. See the [Installments calculator resources section](#reference/installments-calculator-resources) for more details about possibility to embed installment calculator on your website. Leave empty otherwise.
 
 If the request was successfully processed, you receive HTTP status code 201 and *application* object with at least following information in the response:
 - Application unique ID
@@ -776,6 +778,39 @@ Search for *order* using specified parameters.
     + Attributes (Errors)
 
 
+
+# Group Scoring resources
+Services that allow partner e-shops to find out a probability of *application's* approval.
+
+
+## Precheck [/financing/v1/scorings/precheck]
+Simple operation for customer preliminary scoring. Returns a suitability of particular customer for financing services. It is best suitable for identifying clients who will probably be rejected. Take into account that positive recommendation can not guarantee customer's approval (it is not the main scoring) as the results are based on a few elementary pieces of information about the customer.
+
+Resource has to be called with valid access token (see the [Security section](#reference/security)) from your server. If you plan to integrate it in a client flow, you should implement REST endpoint bound to your shopping basket session that will be used as a proxy to call HC API - **NEVER put access token directly to client side**.
+
+Possible error codes explanation:
+| Status code | Code                | Explanation                                                                     |
+| ---         | ---                 | ---                                                                             |
+| 400         | INVALID_REQUEST     | Request was not well formatted (malformed request syntax, size too large, etc.) |
+| 500         | FAILURE             | Internal failure                                                                |
+
+### Run precheck [POST]
+
++ Request (application/json; charset=utf-8)
+    + Attributes (PrecheckRequest)
+
+
++ Response 200(application/json; charset=utf-8)
+
+    + Attributes (PrecheckResult)
+
+
++ Response 400(application/json; charset=utf-8)
+        Error in processing request
+
+    + Attributes (Errors)
+
+
 # Group Installments calculator resources
 When you want to provide your customer (that wants to pay for a purchase by a loan) an option to choose from available installment programs while he is still on your website, it is necessary to implement "installments calculator".
 
@@ -1003,19 +1038,18 @@ Notify partner about changes in application.
     + Attributes (NotificationRequest)
         + `stateReason`: `PROCESSING_APPROVED` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
            + `PROCESSING_REDIRECT_NEEDED` - Redirect to HC is needed. Redirect user to `gatewayRedirectUrl`.
-           + `PROCESSING_NEW` - New application created
            + `PROCESSING_PREAPPROVED` - Preliminary approval by HC
-           + `REJECTED` - Rejected by HC
            + `PROCESSING_APPROVED` - Approved by HC, to be signed by client
            + `PROCESSING_REVIEW` - Manual review by HC in progress
            + `PROCESSING_ALT_OFFER` - Alternative offered to client
            + `PROCESSING_SIGNED` - Signed by client, to verification by HC
-           + `CANCELLED_NOT_PAID` - Cancelled before delivery
            + `READY_TO_SHIP` - Financing approved, goods ready to be shipped to client
            + `READY_SHIPPED` - Goods shipped to client
            + `READY_DELIVERING` - Verification of goods delivery
            + `READY_DELIVERED` - Goods delivered to client
            + `READY_PAID` - Paid to merchant
+           + `REJECTED` - Rejected by HC
+           + `CANCELLED_NOT_PAID` - Cancelled before delivery
            + `CANCELLED_RETURNED` - Cancelled after delivery, goods returned to merchant
 
 + Response 200 (application/json; charset=utf-8)
@@ -1055,8 +1089,9 @@ Financing application request
 + `order` (OrderBase, required) - Order information
 + `type` (enum, required) - Financing type
     + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
-+ `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
++ `settingsInstallment` (SettingsInstallment, required) - Settings for INSTALLMENT Application type.
 + `merchantUrls` (MerchantUrls, required) - Collection of partner's URLs used for redirection of a customer back to a partner website or as a notification endpoint
++ `precheckIds` (array[string], optional) - Array of all precheck ids related to this application. See [Precheck operation](#reference/scoring-resources/precheck/create-application) and it's response.
 
 ## ApplicationBase (object)
 Financing application base information
@@ -1071,17 +1106,17 @@ Financing application base information
 + `stateReason`: `PROCESSING_REDIRECT_NEEDED` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
     + `PROCESSING_REDIRECT_NEEDED` - Redirect to HC is needed. Redirect user to `gatewayRedirectUrl`.
     + `PROCESSING_PREAPPROVED` - Preliminary approval by HC
-    + `REJECTED` - Rejected by HC
     + `PROCESSING_APPROVED` - Approved by HC, to be signed by client
     + `PROCESSING_REVIEW` - Manual review by HC in progress
     + `PROCESSING_ALT_OFFER` - Alternative offered to client
     + `PROCESSING_SIGNED` - Signed by client, to verification by HC
-    + `CANCELLED_NOT_PAID` - Cancelled before delivery
     + `READY_TO_SHIP` - Financing approved, goods ready to be shipped to client
     + `READY_SHIPPED` - Goods shipped to client
     + `READY_DELIVERING` - Verification of goods delivery
     + `READY_DELIVERED` - Goods delivered to client
     + `READY_PAID` - Paid to merchant
+    + `REJECTED` - Rejected by HC
+    + `CANCELLED_NOT_PAID` - Cancelled before delivery
     + `CANCELLED_RETURNED` - Cancelled after delivery, goods returned to merchant
 
 ## Application (ApplicationBase)
@@ -1092,7 +1127,7 @@ Financing application
 + `order` (Order, required) - Order data
 + `type`:  `INSTALLMENT` (enum, required) - Financing type
     + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
-+ `settingsInstallment` (SettingsInstallment, optional) - Settings for INSTALLMENT Application type.
++ `settingsInstallment` (SettingsInstallment, required) - Settings for INSTALLMENT Application type.
 + `gatewayRedirectUrl`: `https://www.ourloan.cz/application/11200a0ee1` (string, optional) - Gateway redirect URL. Redirect user to this URL if state is `PROCESSING` and stateReason is `PROCESSING_REDIRECT_NEEDED`.
 
 
@@ -1278,6 +1313,28 @@ Collection of URLs used for redirection of a customer back to a partner website 
 + `notificationEndpoint`: `https://www.youreshop.cz/order/AA234` (string, required) - URL of the partner used as a notification endpoint for obtaining important updates about application (approval, rejection, storno, etc.).
 
 
+## PrecheckRequest (object)
+Precheck data.
+
+### Properties
++ `customer` (Customer, required) - Customer data
+
+
+## PrecheckResult (object)
+Precheck result.
+
+### Properties
++ `id` (string, required) - Unique identificator of Precheck. Send this identificator in ApplicationRequest for better approval rate.
++ `recommendation`:`false`  (boolean, required) - A recommendation of whether the order should be passed to the HCO.
+    true = Application is likely going to be approved.
+    false = Application is likely going to be rejected.
++ `message`:`V HCO peněžence nemáte dostatečný limit.` (string, optional) - Custom message for customer.
+    Examples:
+    “V HCO peněžence nemáte dostatečný limit.”
+    “Uveďte do objednávky jméno a příjmení, které používáte ve službě HCO.”
+    etc.
+
+
 ## File (object)
 
 ### Properties
@@ -1384,7 +1441,7 @@ API information
 ## NotificationRequest (ApplicationBase)
 + `orderNumber`: `AA234` (string, required) - Order number (internal for e-shop)
 + `notificationDate`: `2017-07-15T00:00:00+02:00` (string, required) – Date of change of application status.
-+ `orderState` (enum, required) - Order state.
++ `orderState`: `PROCESSING` (enum, required) - Order state.
     + `PROCESSING` - Order is being processed by merchant
     + `SENT` - All order items was sent to customer
     + `DELIVERED` - All order items was delivered to customer
