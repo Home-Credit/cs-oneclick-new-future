@@ -4,10 +4,12 @@ HOST: https://api.homecredit.cz
 # CS - OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.10.24.fcffa83f379f6d9cfa9d1b5c69649ee05a64a4f7`
+> Version of documentation: `1.11.08.8f4ea8809088b267021ec353c038190fb39d6c7c`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
+| 1.11.08 | Not in release | ---          | Integration resource `/fakeshop/rest/applications/{applicationId}/changeState` added |
+
 | 1.10.24 | CS49    | 20.11.2018   | New resource '/financing/v1/scorings/precheck' added. For more details see [Precheck operation](#reference/scoring-resources/precheck/create-application) |
 | 1.10.24 | CS49    | 20.11.2018   | New optional attribute `precheckIds` added into createApplication.request (POST `/financing/v1/applications`) |
 | 1.07.17 | CS46    | 28.8.2018    | Application resources.Response - 2 attributes customer.type and customer.dueDateCategory were removed |
@@ -194,12 +196,6 @@ There are 3 levels of error severity:
 - attributes in request/response object are optional, unless stated otherwise (`required` flag under attribute name)
 - required attribute in optional object means, that if optional object is specified, it must contain required attribute.
 - all values in request/response attributes are just examples, except for enum values - these are the only possible values for given attribute.
-
-
-# Group Testing & Integration
-This section should help new partner's e-shop developers with better understanding of the API and connected processes especially during early stages of the API integration.
-
-> Temporarily described in separate document (currently written in Czech) "Základní informace k platební metodě HC On-line.docx" obtainable through a request at integrace_eshop@homecredit.cz.
 
 
 # Group Security
@@ -784,7 +780,7 @@ Services that allow partner e-shops to find out a probability of *application's*
 
 
 ## Precheck [/financing/v1/scorings/precheck]
-Simple operation for customer preliminary scoring. Returns a suitability of particular customer for financing services. It is best suitable for identifying clients who will probably be rejected. Take into account that positive recommendation can not guarantee customer's approval (it is not the main scoring) as the results are based on a few elementary pieces of information about the customer.
+Simple operation for customer preliminary scoring. Returns a suitability of particular customer for financing services. It is best suitable for identifying clients who will probably be rejected. Take into account that positive recommendation can not guarantee customer's approval (it is not the main scoring) as the result is based on only a few elementary pieces of information about the customer.
 
 Resource has to be called with valid access token (see the [Security section](#reference/security)) from your server. If you plan to integrate it in a client flow, you should implement REST endpoint bound to your shopping basket session that will be used as a proxy to call HC API - **NEVER put access token directly to client side**.
 
@@ -1062,7 +1058,60 @@ Notify partner about changes in application.
 
         Can not process changes
 
+# Group Testing & Integration
+This section should help new partner's e-shop developers with better understanding of the API and connected processes especially during early stages of the API integration.
 
+> Temporarily described in separate document (currently written in Czech) "Základní informace k platební metodě HC On-line.docx" obtainable through a request at integrace_eshop@homecredit.cz.
+
+This section also contains resources for easier integration to API.
+
+> NOTE: Valid access token is required for the usage of these resources (the same acces token used for the whole API)
+
+> NOTE: Those resources work only on testing and integration environments.
+
+## Change application state - integration usage only [/fakeshop/rest/applications/{applicationId}/changeState]
+Use this resource for changing Application state (`stateReason`) to desired one. Following table contains allowed transitions for this resource.
+
+| Current stateReason of Application (from) | Available transitions (to) |
+| --- | --- |
+| `PROCESSING_REDIRECT_NEEDED`| `PROCESSING_APPROVED`, `PROCESSING_SIGNED`, `READY_TO_SHIP`, `REJECTED`, `CANCELLED_NOT_PAID` |
+| `PROCESSING_APPROVED`| `PROCESSING_SIGNED`, `READY_TO_SHIP`, `CANCELLED_NOT_PAID` |
+| `PROCESSING_SIGNED`| `READY_TO_SHIP`, `CANCELLED_NOT_PAID` |
+| `READY_SHIPPED`| `CANCELLED_NOT_PAID` |
+| `READY_DELIVERED`| `CANCELLED_RETURNED` |
+
+> NOTE: This action simulates real application process, which means that Application may be moved through one or multiple steps (`stateReason`) - as described in state diagram [State diagram of Application](https://github.com/mdostal-hci/oneclick-images/raw/master/StateDiagramApplication.png). That is why you may receive multiple notifications about changes of Application's state. Example: if you request change from `PROCESSING_REDIRECT_NEEDED` to `READY_TO_SHIP`, you will receive `PROCESSING_APPROVED` and `READY_TO_SHIP` notifications.
+
+
++ Parameters
+    + applicationId (string, required, `01-11200a0ee1`)
+
+### Change application state - integration usage [POST]
+
++ Request Valid_request (application/json; charset=utf-8)
+    + Attributes (IntegrationChangeStateRequest)
+
++ Response 200 (application/json; charset=utf-8)
+   + Attributes (ApplicationBase)
+
+
++ Request Application_not_found (application/json; charset=utf-8)
+   + Attributes (IntegrationChangeStateRequest)
+
++ Response 404 (application/json; charset=utf-8)
+
+         Application does not exist
+
+     + Attributes (ErrorsNotFound)
+
++ Request Application_transition_not_allowed (application/json; charset=utf-8)
+   + Attributes (IntegrationChangeStateRequest)
+
++ Response 422 (application/json; charset=utf-8)
+
+         Transition is not allowed
+
+     + Attributes (ErrorsNotSupported)
 
 # Data Structures
 
@@ -1450,6 +1499,15 @@ API information
 + `sentDate`: `2017-07-16T00:00:00+02:00` (string, required) – Date of sending notification (=actual date).
 + `checkSum`: `443E150D3406F6A8DC62C1DB224AFDD84FA9907071BB1AD9B2C7701031793662191501B26AADF3A31361341EA176C80B23D8A9A5E5B5219538289945FE0C20A7` (string, required) – Hashed message
 + `sequenceNumber`: 1 (number, required) - Sequence number of notification for corresponding application. Starts at value of 1.
+
+## IntegrationChangeStateRequest (object)
++ `stateReason`: `PROCESSING_APPROVED` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
+   + `REJECTED` - Rejected by HC
+   + `PROCESSING_APPROVED` - Approved by HC, to be signed by client
+   + `PROCESSING_SIGNED` - Signed by client, to verification by HC
+   + `READY_TO_SHIP` - Financing approved, goods ready to be shipped to client
+   + `CANCELLED_NOT_PAID` - Cancelled before delivery
+   + `CANCELLED_RETURNED` - Cancelled after delivery, goods returned to merchant
 
 ## KeyValue (object)
 + `key`: `user_agent` (string, required) - Key
