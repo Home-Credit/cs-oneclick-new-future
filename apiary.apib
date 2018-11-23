@@ -4,12 +4,12 @@ HOST: https://api.homecredit.cz
 # CS - OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.11.08.8f4ea8809088b267021ec353c038190fb39d6c7c`
+> Version of documentation: `1.11.23.d0d628d7780514d5592a2ccb7f8d47266583faba`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
+| 1.11.23 | Not in release | ---          | Documentation fix - in Create application request in Customer.Addreses was falselly stated that only `BILLING` and `DELIVERY` state are allowed. It was fixed to correct `CONTACT` and `PERMANENT` |
 | 1.11.08 | Not in release | ---          | Integration resource `/fakeshop/rest/applications/{applicationId}/changeState` added |
-
 | 1.10.24 | CS49    | 20.11.2018   | New resource '/financing/v1/scorings/precheck' added. For more details see [Precheck operation](#reference/scoring-resources/precheck/create-application) |
 | 1.10.24 | CS49    | 20.11.2018   | New optional attribute `precheckIds` added into createApplication.request (POST `/financing/v1/applications`) |
 | 1.07.17 | CS46    | 28.8.2018    | Application resources.Response - 2 attributes customer.type and customer.dueDateCategory were removed |
@@ -328,7 +328,7 @@ Create new *application* of particular financing type
 + Request Example_VALID_REQUEST (application/json; charset=utf-8)
     + Attributes (ApplicationRequest)
       + `customer` (Customer, required) - Customer information
-          + `addresses` (array[Address], fixed-type, required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
+          + `addresses` (array[Address], fixed-type, required) - Addresses. Only `PERMANENT` and `CONTACT` types are allowed.
               + Sample
                   + (object)
                       + `name`: `John Newborn`
@@ -349,7 +349,7 @@ Create new *application* of particular financing type
 + Request Example_REPEATED_VALID_REQUEST (application/json; charset=utf-8)
     + Attributes (ApplicationRequest)
       + `customer` (Customer, required) - Customer information
-          + `addresses` (array[Address], fixed-type, required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
+          + `addresses` (array[Address], fixed-type, required) - Addresses. Only `PERMANENT` and `CONTACT` types are allowed.
               + Sample
                   + (object)
                       + `name`: `John Newborn`
@@ -1189,7 +1189,7 @@ Customer data
 + `fullName`: `Ing. John Newborn, Csc.` (string, optional) - Customer full name, including academical degrees and salutation. Required only if `firstName` and `lastName` are empty.
 + `email`: `john.newborn@country.com` (string, required) - E-mail address of customer
 + `phone`: `+420777123456` (string, required) - Phone number with country code (including leading `+`)
-+ `addresses` (array[Address], fixed-type, optional) - Addresses. All types are allowed.
++ `addresses` (array[Address], fixed-type, optional) - Addresses. Only `PERMANENT` and `CONTACT` types are allowed.
 + `tin`: `12333321` (string, optional) - Tax identification number (ICO)
 
 
