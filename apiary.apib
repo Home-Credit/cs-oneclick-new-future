@@ -189,7 +189,7 @@ There are 3 levels of error severity:
   - week no. 1 is the week with the year's first Thursday in it
 - **phone numbers** uses international format starting with '+' and including country code (example of valid number: `+420739111222`)
 - **numbers format** number format is defined by [JSON standard](http://www.json.org), e.g. decimals are separated by `.`
-- **money format** uses [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) formatting (in minor units, e.g.: 12590 represents 125,90 CZK)
+- **money format** uses [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) formatting (in minor units, e.g.: 12590 represents 125,90)
 
 
 ## Documentation principles
@@ -1140,7 +1140,7 @@ Financing application request
     + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
 + `settingsInstallment` (SettingsInstallment, required) - Settings for INSTALLMENT Application type.
 + `merchantUrls` (MerchantUrls, required) - Collection of partner's URLs used for redirection of a customer back to a partner website or as a notification endpoint
-+ `precheckIds` (array[string], optional) - Array of all precheck ids related to this application. See [Precheck operation](#reference/scoring-resources/precheck/create-application) and it's response.
++ `precheckIds` (array[string], fixed-type, optional) - Array of all precheck ids related to this application. See [Precheck operation](#reference/scoring-resources/precheck/create-application) and it's response.
 
 ## ApplicationBase (object)
 Financing application base information
@@ -1326,9 +1326,9 @@ Order item information.
 ## SettingsInstallment (object)
 + `preferredMonths`: 6 (number, optional) - Preferred number of installments (in months)
 + `preferredInstallment` (Amount, optional) - Preferred repayment amount
-    + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+    + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
-    + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+    + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `productCode`: `COCONL06` (string, optional) - Product code, this indicates previous calculation result
 + `productSetCode`: `COCHCONL` (string, optional) - Product set code, this will limit further calculations
 
@@ -1407,7 +1407,7 @@ Installment programs
     + `FAVOURITE` - Recommended (favourite) installment program
     + `OTHER` - Other
 + `installment` (Amount, optional) - monthly installment amount
-    + `amount`: 221900 (number, required) - Amount in minor units (250000 represents 2500 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+    + `amount`: 221900 (number, required) - Amount in minor units (250000 represents 2500) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `numberOfInstallments`: 6 (number, optional) - installment count
 
 
@@ -1422,7 +1422,7 @@ Installment programs
 + `annualInterestRate`: 0.1743 (number, optional) - Annual interest rate
 + `predictedProvisionDate`: `2018-08-10` (string, optional) - Predicted provision date
 + `paidBack` (Amount, optional) - Total amount paid by customer
-    + `amount`: 1331400 (number, required) - Amount in minor units (250000 represents 2500 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+    + `amount`: 1331400 (number, required) - Amount in minor units (250000 represents 2500) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `rpsn`: 0.19 (number, optional) - RPSN
 + `legalline`: "Každou žádost posuzujeme individuálně a uvedené hodnoty jsme vám spočítali na míru.\nPlatí pro čerpání k 10.08.2018, datum první splátky je k 20.09.2018 a datum dalších splátek vždy k 20. dni v měsíci, počínaje 20.10.2018 a při lhůtě splatnosti 20.02.2019." (string, optional) - Text interpretation of the offer
 
@@ -1431,12 +1431,12 @@ Installment programs
 Down payments information - the lowest down payment possible, the maximum down payment possible and a size of one step between them.
 
 ### Properties
-+ `minimum` (Amount, optional) - The lowest down payment amount, e.g. 0 (0 Kč)
++ `minimum` (Amount, optional) - The lowest down payment amount, e.g. 0 (0 CZK)
     + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
-+ `maximum` (Amount, optional) - Maximum down payment amount, e.g. 2500 (2 500 Kč)
-    + `amount`: 250000 (number, required) - Amount in minor units (250000 represents 2500 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
-+ `step` (Amount, optional) - Size of one step between the lowest and maximum down payment amounts, e.g. 500 (500 Kč). Available down payments could be (min 0, max 2500): 0, 500, 1000, 1500, 2000, 2500
-    + `amount`: 50000 (number, required) - Amount in minor units (50000 represents 500 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `maximum` (Amount, optional) - Maximum down payment amount, e.g. 2500 (2 500 CZK)
+    + `amount`: 250000 (number, required) - Amount in minor units (250000 represents 2500) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `step` (Amount, optional) - Size of one step between the lowest and maximum down payment amounts, e.g. 500 (500 CZK). Available down payments could be (min 0, max 2500): 0, 500, 1000, 1500, 2000, 2500
+    + `amount`: 50000 (number, required) - Amount in minor units (50000 represents 500) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 
 ## InstallmentProgramsRequest (object)
@@ -1462,15 +1462,15 @@ Down payments information - the lowest down payment possible, the maximum down p
 Financial amount
 
 ### Properties
-+ `amount`: 1259950 (number, required) - Amount in minor units (1259950 represents 12599,50 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
-+ `currency`: `CZK` (string, required) - Amount currency. [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Currenty only CZK is allowed.
++ `amount`: 1259950 (number, required) - Amount in minor units (1259950 represents 12599,50) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `currency`: `CZK` (string, required) - Amount currency. [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Currenty only local currency is allowed (CZK in Czech Republic and EUR in Slovakia).
 
 
 ## VatAmount (Amount)
 Financial amount with VAT rate.
 
 ### Properties
-+ `amount`: 188992 (number, required) - Amount in minor units (188992 represents 1889,92 CZK) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `amount`: 188992 (number, required) - Amount in minor units (188992 represents 1889,92) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `vatRate`: 15 (number, required) - VAT rate as natural number (15 represents 15% rate)
 
 
