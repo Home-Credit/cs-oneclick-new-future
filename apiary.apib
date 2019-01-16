@@ -649,12 +649,15 @@ When the whole *order* was delivered to the customer, use `/financing/v1/applica
 | ---                | ---       |
 | `INSTALLMENT`      | YES       |
 
-| Application state | Availability                                                          |
-| ---               | ---                                                                   |
-| `PROCESSING`      | NO                                                                    |
-| `REJECTED`        | NO                                                                    |
-| `CANCELLED`       | NO                                                                    |
-| `READY`           | YES (* available only when `Application.stateReason = READY_TO_SHIP`) |
+| Application state | Availability                                                                     |
+| ---               | ---                                                                              |
+| `PROCESSING`      | NO                                                                               |
+| `REJECTED`        | NO                                                                               |
+| `CANCELLED`       | NO                                                                               |
+| `READY`           | YES* (see the [availability note bellow](#mark-order-as-delivered-availability)) |
+
+<a name="mark-order-as-delivered-availability"></a>
+> **AVAILABILITY NOTE:** Supported `stateReason` of *application's* `state READY` in correct *application* state flow is `READY_TO_SHIP`. Other supported cases are when `stateReason` is `READY_DELIVERED` or `READY_PAID` ==> HTTP status code 200 (OK) is returned in all three cases when processed successfully.
 
 If the request was successfully processed, you receive HTTP status code 200 and object of information about changed *order* plus basic information about respective *application* (ID, state, substate) with at least following information in the response:
 - Order number
