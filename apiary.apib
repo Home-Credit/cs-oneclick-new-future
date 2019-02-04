@@ -6,12 +6,12 @@ API documentation for Home Credit One-Click API (next release preview).
 
 > **IMPORTANT NOTE:** Resource calls made from **Slovakia** MUST use appropriate dedicated `.sk` endpoints. E.g. `https://api.homecredit.sk/financning/v1/applications`
 
-> Version of documentation: `1.13.30.9788e1460bfc08ee57f9d4f5546d3c9f9e3e99eb`
+> Version of documentation: `1.13.04.4ce23203f79933044f01bb671803aeff1f95d98b`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
 | 1.11.23 | Not in release | ---          | Documentation fix - in Create application request in Customer.Addreses was falselly stated that only `BILLING` and `DELIVERY` state are allowed. It was fixed to correct `CONTACT` and `PERMANENT` |
-
+| 1.13.04 | TBD     | TBD          | Resource (Change application order)[#reference/application-resources/change-application-order] returns new error code 422 DUPLICATE_ORDER_NUMBER when trying to update `order.number` to already existing not cancelled order number |
 
 In case of any question, please contact our integration department (integrace_eshop@homecredit.cz).
 
