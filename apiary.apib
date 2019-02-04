@@ -4,30 +4,18 @@ HOST: https://api.homecredit.cz
 # CS - OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.11.23.d0d628d7780514d5592a2ccb7f8d47266583faba`
+> **IMPORTANT NOTE:** Resource calls made from **Slovakia** MUST use appropriate dedicated `.sk` endpoints. E.g. `https://api.homecredit.sk/financning/v1/applications`
+
+> Version of documentation: `1.13.30.9788e1460bfc08ee57f9d4f5546d3c9f9e3e99eb`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
 | 1.11.23 | Not in release | ---          | Documentation fix - in Create application request in Customer.Addreses was falselly stated that only `BILLING` and `DELIVERY` state are allowed. It was fixed to correct `CONTACT` and `PERMANENT` |
-| 1.11.08 | Not in release | ---          | Integration resource `/fakeshop/rest/applications/{applicationId}/changeState` added |
-| 1.10.24 | CS49    | 20.11.2018   | New resource '/financing/v1/scorings/precheck' added. For more details see [Precheck operation](#reference/scoring-resources/precheck/create-application) |
-| 1.10.24 | CS49    | 20.11.2018   | New optional attribute `precheckIds` added into createApplication.request (POST `/financing/v1/applications`) |
-| 1.07.17 | CS46    | 28.8.2018    | Application resources.Response - 2 attributes customer.type and customer.dueDateCategory were removed |
-| 1.07.10 | CS46    | 28.8.2018    | Merchantsite notifications - 1 attribute has been added (sequenceNumber) |
-| 1.06.27 | CS46    | 28.8.2018    | Merchantsite notifications - 3 attributes have been added (checkSum, notificationDate, orderNumber)  |
-| 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.customer - following attributes have been removed: titleBefore, titleAfter, vatin |
-| 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.order - following attributes have been removed: deliveryCarrier, documents |
-| 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.order.items - following attributes have been removed:  variant, description, categories, productURL |
-| 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request.merchantURLs - following attributes have been removed: paymentEndpoint, changeEndpoint |
-| 1.06.25 | CS46    | 28.8.2018    | CreateApplication Request - following attributes have been removed: - agreementTermsAndConditions, agreementPersonalDataProcessing|
-| 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response.customer - following attributes have been removed: titleBefore, titleAfter, vatin, ordersCountLimit, ordersCountRemaining |
-| 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response.order - following attributes have been removed: deliveryCarrier, documents, deliveryDate, deliveryTrackingNumber, sentDate |
-| 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response.order.items - following attributes have been removed:  variant, description, categories, productURL, deliveryDate, deliveryTrackingNumber, sentDate |
-| 1.06.25 | CS46    | 28.8.2018    | CreateApplication, GetApplication, CancelApplication Response - following attributes have been removed: agreementTermsAndConditions,agreementPersonalDataProcessing |
-| 1.06.25 | CS46    | 28.8.2018    | Change application order – new resource added |
-| 1.06.25 | CS46    | 28.8.2018    | Change of attributes added to redirect URL (redirection back to eshop pages after completion of financing application process) |
+
 
 In case of any question, please contact our integration department (integrace_eshop@homecredit.cz).
+
+> **IMPORTANT NOTE:** Resource calls made from **Slovakia** MUST use appropriate dedicated `.sk` endpoints. E.g. `https://api.homecredit.sk/financning/v1/applications`
 
 ## Getting started
 This online document describes Home Credit (HC) One-Click API - the means for partner e-shops through which they can offer their customers the benefits of one of Home Credit's payment methods.
@@ -525,12 +513,13 @@ If the request was successfully processed, you receive HTTP status code 200 and 
   - Application substate
 
 In other cases, you receive one of the following errors:
-| Status code | Code                  | Explanation                                                                     |
-| ---         | ---                   | ---                                                                             |
-| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.) |
-| 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                       |
-| 422         | NOT_SUPPORTED         | Resource is not supported for given financing type                              |
-| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable   |
+| Status code | Code                   | Explanation                                                                     |
+| ---         | ---                    | ---                                                                             |
+| 400         | INVALID_REQUEST        | Request was not well formatted (malformed request syntax, size too large, etc.) |
+| 404         | OBJECT_NOT_FOUND       | The requested resource could not be found                                       |
+| 422         | NOT_SUPPORTED          | Resource is not supported for given financing type                              |
+| 422         | DUPLICATE_ORDER_NUMBER | Change to already existing not cancelled order number is not allowed            |
+| 500         | INTERNAL_SERVER_ERROR  | Unexpected condition was encountered and no more specific message is suitable   |
 
 
 + Parameters
@@ -1225,7 +1214,7 @@ Customer data
 + reason (string, optional) - Reason of change.
 
 ## OrderChange (object)
-+ `number`: `AA234` (string, optional) - Order number (internal for e-shop)
++ `number`: `AA234` (string, optional) - Order number (internal for e-shop), empty string is not allowed.
 + `variableSymbols`: `123456`, `1234567` (array[string], fixed-type, optional) - Variable symbols (internal for e-shop)
 
 
