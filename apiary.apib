@@ -6,12 +6,12 @@ API documentation for Home Credit One-Click API (next release preview).
 
 > **IMPORTANT NOTE:** Resource calls made from **Slovakia** MUST use appropriate dedicated `.sk` endpoints. E.g. `https://api.homecredit.sk/financning/v1/applications`
 
-> Version of documentation: `1.13.04.4ce23203f79933044f01bb671803aeff1f95d98b`
+> Version of documentation: `1.15.06.7d66ed0fdd19ef17838fd36a752d9af267afe292`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
-| 1.11.23 | Not in release | ---          | Documentation fix - in Create application request in Customer.Addreses was falselly stated that only `BILLING` and `DELIVERY` state are allowed. It was fixed to correct `CONTACT` and `PERMANENT` |
-| 1.13.04 | TBD     | TBD          | Resource (Change application order)[#reference/application-resources/change-application-order] returns new error code 422 DUPLICATE_ORDER_NUMBER when trying to update `order.number` to already existing not cancelled order number |
+| 1.15.06 | CS53    | 2.4.2019     | Error list fixed - Resources have possible error list updated. Every resource returns errors described in particular error list. |
+| 1.15.06 | TBD     | TBD          | Resource (Change application order)[#reference/application-resources/change-application-order] returns new error code 422 DUPLICATE_ORDER_NUMBER when trying to update `order.number` to already existing not cancelled order number |
 
 In case of any question, please contact our integration department (integrace_eshop@homecredit.cz).
 
@@ -177,7 +177,7 @@ There are 3 levels of error severity:
   - week no. 1 is the week with the year's first Thursday in it
 - **phone numbers** uses international format starting with '+' and including country code (example of valid number: `+420739111222`)
 - **numbers format** number format is defined by [JSON standard](http://www.json.org), e.g. decimals are separated by `.`
-- **money format** uses [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) formatting (in minor units, e.g.: 12590 represents 125,90)
+- **money format** uses [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) formatting (in minor units, e.g.: 12590 represents 125,90 CZK/EUR)
 
 
 ## Documentation principles
@@ -355,7 +355,6 @@ Create new *application* of particular financing type
     + Attributes (Application)
 
 
-
 + Request Bad request (application/json; charset=utf-8)
     + Attributes (ApplicationRequest)
       + `type`: `INVALID_TYPE` (enum, required) - Financing type
@@ -389,6 +388,7 @@ In other cases, you receive one of the following errors:
 | ---         | ---                   | ---                                                                              |
 | 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
 | 404         | APPLICATION_NOT_FOUND | The requested resource could not be found                                        |
+| 422         | NOT_SUPPORTED         | Resource is not supported for given financing type                               |
 | 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
 | 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
 
@@ -438,6 +438,7 @@ In other cases, you receive one of the following errors:
 | ---         | ---                   | ---                                                                              |
 | 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
 | 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                        |
+| 422         | NOT_SUPPORTED         | Resource is not supported for given financing type                               |
 | 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
 | 422         | APPLICATION_REJECTED  | When you try to cancel already `REJECTED` `Application`, which is not allowed    |
 | 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
@@ -513,13 +514,14 @@ If the request was successfully processed, you receive HTTP status code 200 and 
   - Application substate
 
 In other cases, you receive one of the following errors:
-| Status code | Code                   | Explanation                                                                     |
-| ---         | ---                    | ---                                                                             |
-| 400         | INVALID_REQUEST        | Request was not well formatted (malformed request syntax, size too large, etc.) |
-| 404         | OBJECT_NOT_FOUND       | The requested resource could not be found                                       |
-| 422         | NOT_SUPPORTED          | Resource is not supported for given financing type                              |
-| 422         | DUPLICATE_ORDER_NUMBER | Change to already existing not cancelled order number is not allowed            |
-| 500         | INTERNAL_SERVER_ERROR  | Unexpected condition was encountered and no more specific message is suitable   |
+| Status code | Code                   | Explanation                                                                      |
+| ---         | ---                    | ---                                                                              |
+| 400         | INVALID_REQUEST        | Request was not well formatted (malformed request syntax, size too large, etc.)  |
+| 404         | OBJECT_NOT_FOUND       | The requested resource could not be found                                        |
+| 422         | NOT_SUPPORTED          | Resource is not supported for given financing type                               |
+| 422         | UNPROCESSABLE          | The request was well-formed but was unable to be followed due to semantic errors |
+| 422         | DUPLICATE_ORDER_NUMBER | Change to already existing not cancelled order number is not allowed             |
+| 500         | INTERNAL_SERVER_ERROR  | Unexpected condition was encountered and no more specific message is suitable    |
 
 
 + Parameters
@@ -608,6 +610,7 @@ If the request was successfully processed, you receive HTTP status code 200 and 
   | 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
   | 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                        |
   | 422         | NOT_SUPPORTED         | Resource is not in supported state (substate)                                    |
+  | 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
   | 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
 
 + Parameters
@@ -676,6 +679,7 @@ In other cases, you receive one of the following errors:
 | 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
 | 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                        |
 | 422         | NOT_SUPPORTED         | Resource is not in supported state (substate)                                    |
+| 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
 | 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
 
 
@@ -1064,16 +1068,17 @@ This section also contains resources for easier integration to API.
 ## Change application state - integration usage only [/fakeshop/rest/applications/{applicationId}/changeState]
 Use this resource for changing Application state (`stateReason`) to desired one. Following table contains allowed transitions for this resource.
 
-| Current stateReason of Application (from) | Available transitions (to) |
-| --- | --- |
-| `PROCESSING_REDIRECT_NEEDED`| `PROCESSING_APPROVED`, `PROCESSING_SIGNED`, `READY_TO_SHIP`, `REJECTED`, `CANCELLED_NOT_PAID` |
-| `PROCESSING_APPROVED`| `PROCESSING_SIGNED`, `READY_TO_SHIP`, `CANCELLED_NOT_PAID` |
-| `PROCESSING_SIGNED`| `READY_TO_SHIP`, `CANCELLED_NOT_PAID` |
-| `READY_SHIPPED`| `CANCELLED_NOT_PAID` |
-| `READY_DELIVERED`| `CANCELLED_RETURNED` |
+| Current stateReason of Application (from) | Available transitions (to)                                                                    |
+| ---                                       | ---                                                                                           |
+| `PROCESSING_REDIRECT_NEEDED`              | `PROCESSING_APPROVED`, `PROCESSING_SIGNED`, `READY_TO_SHIP`, `REJECTED`, `CANCELLED_NOT_PAID` |
+| `PROCESSING_APPROVED`                     | `PROCESSING_SIGNED`, `READY_TO_SHIP`, `CANCELLED_NOT_PAID`                                    |
+| `PROCESSING_SIGNED`                       | `READY_TO_SHIP`, `CANCELLED_NOT_PAID`                                                         |
+| `READY_SHIPPED`                           | `CANCELLED_NOT_PAID`                                                                          |
+| `READY_DELIVERED`                         | `CANCELLED_RETURNED`                                                                          |
 
 > NOTE: This action simulates real application process, which means that Application may be moved through one or multiple steps (`stateReason`) - as described in state diagram [State diagram of Application](https://github.com/mdostal-hci/oneclick-images/raw/master/StateDiagramApplication.png). That is why you may receive multiple notifications about changes of Application's state. Example: if you request change from `PROCESSING_REDIRECT_NEEDED` to `READY_TO_SHIP`, you will receive `PROCESSING_APPROVED` and `READY_TO_SHIP` notifications.
 
+> NOTE: As you may see no transition from `READY_TO_SHIP` is allowed for `/fakeshop/rest/applications/{applicationId}/changeState` resource. You should use 'Mark order as...' resources according to your Order life cycle.
 
 + Parameters
     + applicationId (string, required, `01-11200a0ee1`)
@@ -1173,30 +1178,20 @@ Financing application
 
 
 ## CustomerBase (object)
-Customer data
-
-### Properties
-+ `firstName`: `John` (string, optional) -  Customer first (given) name. Must be paired with `lastName`. Required if `fullName` is empty.
-+ `lastName`: `Newborn` (string, optional) - Customer last (family) name. Must be paired with `firstName`. Required if `fullName` is empty.
-+ `fullName`: `Ing. John Newborn, Csc.` (string, optional) - Customer full name, including academical degrees and salutation. Required only if `firstName` and `lastName` are empty.
-+ `email`: `john.newborn@country.com` (string, required) - E-mail address of customer
++ `firstName`: `John` (string, optional) -  Customer first (given) name. Must be paired with `lastName`. Required if `fullName` is empty. (Max 30 characters)
++ `lastName`: `Newborn` (string, optional) - Customer last (family) name. Must be paired with `firstName`. Required if `fullName` is empty. (Max 30 characters)
++ `fullName`: `Ing. John Newborn, Csc.` (string, optional) - Customer full name, including academical degrees and salutation. Required only if `firstName` and `lastName` are empty. (Max 60 characters)
++ `email`: `john.newborn@country.com` (string, required) - E-mail address of customer (Max 90 characters)
 + `phone`: `+420777123456` (string, required) - Phone number with country code (including leading `+`)
 + `addresses` (array[Address], fixed-type, optional) - Addresses. Only `PERMANENT` and `CONTACT` types are allowed.
-+ `tin`: `12333321` (string, optional) - Tax identification number (ICO)
-
++ `tin`: `12333321` (string, optional) - Tax identification number (ICO, max 10 characters)
 
 ## Customer (CustomerBase)
-Customer data
-
-### Properties
 + `ipAddress`: `172.10.10.1` (string, optional) - IPv4 or IPv6 address of a customer.
 + `fingerprintComponents` (array[KeyValue], fixed-type, optional) - Fingerprints components.  Fill this property with data created with HCO JS library.
 + `extraData` (CustomerExtraData, optional) - Additional data, that may improve the approval probability.
 
-
 ## CustomerExtraData (object)
-
-### Properties
 + `transactionsNumber`: 10 (number, optional) - Historical count of customer's cash transactions made in partner's e-shop
 + `cashlessTransactionsNumber`: 5 (number, optional) - Historical count of customer's cashless transactions made in partner's e-shop
 + `transactionsSum` (Amount, optional) - Sum of all cash transactions made in partner's e-shop
@@ -1238,8 +1233,8 @@ Specification of the reason why the application is cancelled.
 Order information, needed to create an application.
 
 ### Properties
-+ `number`: `AA234` (string, required) - Order number (internal for e-shop)
-+ `variableSymbols`: `123456`, `1234567` (array[string], fixed-type, optional) - Variable symbols (internal for e-shop). For the financing type `INSTALLMENT` the first VS in this array is used as the VS of the reconciliation payment.
++ `number`: `AA234` (string, required) - Order number (internal for e-shop). (Max 100 characters)
++ `variableSymbols`: `123456`, `1234567` (array[string], fixed-type, optional) - Variable symbols (internal for e-shop). For the financing type `INSTALLMENT` the first VS in this array is used as the VS of the reconciliation payment. (Max 10 characters per VS)
 + `totalPrice` (Amount, required) - Total order amount, including VAT
 + `totalVat` (array[VatAmount], fixed-type, required) - Total VAT amounts split by their VAT rates
 + `addresses` (array[Address], fixed-type, required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
@@ -1250,7 +1245,6 @@ Order information, needed to create an application.
     + `ONLINE` - Online delivery (e.g. for intangible assets)
 + `reservationDate`: `2017-07-15T00:00:00+02:00` (string, optional) - Date and time until order is reserved. After this date and time, e-shop does not guarantee items availability (e.g. if application processing is longer, it may endanger order fullfillment).
 + `items` (array[ApplicationRequestOrderItem], fixed-type, required) - Order items
-
 
 
 ## Order (OrderBase)
@@ -1276,9 +1270,9 @@ Additional information about Application.
 Order item base information, needed to identify order item
 
 ### Properties
-+ `code`: `EXC4677-1a` (string, required) - Internal code for item (internal to e-shop). Used to better identify the item for future changes
-+ `ean`: 888462064002 (string, optional) - EAN code.
-+ `name`: `iPhone 6s 32GB SpaceGray` (string, required) - Item name
++ `code`: `EXC4677-1a` (string, required) - Internal code for item (internal to e-shop). Used to better identify the item for future changes. (Max 100 characters)
++ `ean`: 888462064002 (string, optional) - EAN code. (Max 32 characters)
++ `name`: `iPhone 6s 32GB SpaceGray` (string, required) - Item name. (Max 60 characters)
 + `quantity`: 1 (number, optional) - Item quantity. If empty, considered as 1.
 
 
@@ -1296,7 +1290,7 @@ Order item information, needed to create an application.
     + `STORE_CREDIT`
     + `FEE`
     + `INSURANCE`
-+ `producer`: `Apple` (string, optional)
++ `producer`: `Apple` (string, optional) - Producer name. (Max 50 characters)
 + `unitPrice` (Amount, optional) - Price per one piece. If empty, automatically considered that `unitPrice` is `totalPrice` / `quantity`.
 + `unitVat` (VatAmount, optional) - VAT amount per one piece. If empty, automatically considered that `unitVat` is `totalVat` / `quantity`.
 + `totalPrice` (Amount, required) - Total price for all pieces, VAT inclusive
@@ -1318,9 +1312,9 @@ Order item information.
 ## SettingsInstallment (object)
 + `preferredMonths`: 6 (number, optional) - Preferred number of installments (in months)
 + `preferredInstallment` (Amount, optional) - Preferred repayment amount
-    + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+    + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `preferredDownPayment` (Amount, optional) - Preferred down payment amount (amount should be rounded to hundreds)
-    + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+    + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `productCode`: `COCONL06` (string, optional) - Product code, this indicates previous calculation result
 + `productSetCode`: `COCHCONL` (string, optional) - Product set code, this will limit further calculations
 
@@ -1329,15 +1323,15 @@ Order item information.
 Address
 
 ### Properties
-+ `name`: `John Newborn` (string, optional) - Name on address
++ `name`: `John Newborn` (string, optional) - Name on address. (Max 90 characters)
 + `country`: `CZ` (string, required)
     Country.
     (see [ISO 3166 alpha-2](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2))
 
-+ `city`: `Prague` (string, required) - City.
-+ `streetAddress`: `Letenská` (string, required) - Street/city part.
-+ `streetNumber`: `22` (string, required) - Street number
-+ `zip`: `140 00` (string, required) - Postal code
++ `city`: `Prague` (string, required) - City. (Max 10 characters)
++ `streetAddress`: `Letenská` (string, required) - Street/city part. (Max 50 characters)
++ `streetNumber`: `22` (string, required) - Street number. (Max 10 characters)
++ `zip`: `140 00` (string, required) - Postal code. (Max 10 characters)
 + `addressType`: `DELIVERY` (enum, required) - Type of the address. Only some of the types are allowed in each context.
     + `PERMANENT` - Permanent residential address
     + `CONTACT` - Contact address
@@ -1349,9 +1343,9 @@ Address
 Collection of URLs used for redirection of a customer back to a partner website or as a notification endpoint
 
 ### Properties
-+ `approvedRedirect`: `https://www.youreshop.cz` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application approval. Do not implement any business logic on accessing this URL by customer. Implement business logic to READY notification via `notificationEndpoint`.
-+ `rejectedRedirect`: `https://www.youreshop.cz/kosik` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application rejection.  Do not implement any business logic on accessing this URL by customer. Implement business logic to REJECTED notification via `notificationEndpoint`.
-+ `notificationEndpoint`: `https://www.youreshop.cz/order/AA234` (string, required) - URL of the partner used as a notification endpoint for obtaining important updates about application (approval, rejection, storno, etc.).
++ `approvedRedirect`: `https://www.youreshop.cz` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application approval. Do not implement any business logic on accessing this URL by customer. Implement business logic to READY notification via `notificationEndpoint`. (Max 1000 characters, must be valid URL according to [RFC 3986](https://tools.ietf.org/html/rfc3986))
++ `rejectedRedirect`: `https://www.youreshop.cz/kosik` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application rejection.  Do not implement any business logic on accessing this URL by customer. Implement business logic to REJECTED notification via `notificationEndpoint`. (Max 1000 characters, must be valid URL according to [RFC 3986](https://tools.ietf.org/html/rfc3986))
++ `notificationEndpoint`: `https://www.youreshop.cz/order/AA234` (string, required) - URL of the partner used as a notification endpoint for obtaining important updates about application (approval, rejection, storno, etc.). (Max 1000 characters, must be valid URL according to [RFC 3986](https://tools.ietf.org/html/rfc3986))
 
 
 ## PrecheckRequest (object)
@@ -1399,7 +1393,7 @@ Installment programs
     + `FAVOURITE` - Recommended (favourite) installment program
     + `OTHER` - Other
 + `installment` (Amount, optional) - monthly installment amount
-    + `amount`: 221900 (number, required) - Amount in minor units (250000 represents 2500) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+    + `amount`: 221900 (number, required) - Amount in minor units (250000 represents 2500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `numberOfInstallments`: 6 (number, optional) - installment count
 
 
@@ -1414,7 +1408,7 @@ Installment programs
 + `annualInterestRate`: 0.1743 (number, optional) - Annual interest rate
 + `predictedProvisionDate`: `2018-08-10` (string, optional) - Predicted provision date
 + `paidBack` (Amount, optional) - Total amount paid by customer
-    + `amount`: 1331400 (number, required) - Amount in minor units (250000 represents 2500) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+    + `amount`: 1331400 (number, required) - Amount in minor units (250000 represents 2500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `rpsn`: 0.19 (number, optional) - RPSN
 + `legalline`: "Každou žádost posuzujeme individuálně a uvedené hodnoty jsme vám spočítali na míru.\nPlatí pro čerpání k 10.08.2018, datum první splátky je k 20.09.2018 a datum dalších splátek vždy k 20. dni v měsíci, počínaje 20.10.2018 a při lhůtě splatnosti 20.02.2019." (string, optional) - Text interpretation of the offer
 
@@ -1423,12 +1417,12 @@ Installment programs
 Down payments information - the lowest down payment possible, the maximum down payment possible and a size of one step between them.
 
 ### Properties
-+ `minimum` (Amount, optional) - The lowest down payment amount, e.g. 0 (0 CZK)
++ `minimum` (Amount, optional) - The lowest down payment amount, e.g. 0 (0 CZK/EUR)
     + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
-+ `maximum` (Amount, optional) - Maximum down payment amount, e.g. 2500 (2 500 CZK)
-    + `amount`: 250000 (number, required) - Amount in minor units (250000 represents 2500) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
-+ `step` (Amount, optional) - Size of one step between the lowest and maximum down payment amounts, e.g. 500 (500 CZK). Available down payments could be (min 0, max 2500): 0, 500, 1000, 1500, 2000, 2500
-    + `amount`: 50000 (number, required) - Amount in minor units (50000 represents 500) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `maximum` (Amount, optional) - Maximum down payment amount, e.g. 2500 (2 500 CZK/EUR)
+    + `amount`: 250000 (number, required) - Amount in minor units (250000 represents 2500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `step` (Amount, optional) - Size of one step between the lowest and maximum down payment amounts, e.g. 500 (500 Kč). Available down payments could be (min 0, max 2500): 0, 500, 1000, 1500, 2000, 2500
+    + `amount`: 50000 (number, required) - Amount in minor units (50000 represents 500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 
 ## InstallmentProgramsRequest (object)
@@ -1454,7 +1448,7 @@ Down payments information - the lowest down payment possible, the maximum down p
 Financial amount
 
 ### Properties
-+ `amount`: 1259950 (number, required) - Amount in minor units (1259950 represents 12599,50) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `amount`: 1259950 (number, required) - Amount in minor units (1259950 represents 12599,50 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `currency`: `CZK` (string, required) - Amount currency. [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Only local currency is allowed (CZK in Czech Republic and EUR in Slovakia).
 
 
@@ -1462,7 +1456,7 @@ Financial amount
 Financial amount with VAT rate.
 
 ### Properties
-+ `amount`: 188992 (number, required) - Amount in minor units (188992 represents 1889,92) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
++ `amount`: 188992 (number, required) - Amount in minor units (188992 represents 1889,92 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Must be 0 or greater.
 + `vatRate`: 15 (number, required) - VAT rate as natural number (15 represents 15% rate)
 
 
@@ -1505,6 +1499,7 @@ API information
 + `key`: `user_agent` (string, required) - Key
 + `value` (object, required) - Value
 
+
 ## Error (object)
 + code: `BAD_REQUEST` (string, required) - Unique internal error code
 + message: `Bad request` (string, required) - Human readable error description (non-localized)
@@ -1517,7 +1512,6 @@ API information
 
 ## Errors (object)
 + errors (array[Error], fixed-type, required) - Array with errors
-
 
 
 ## ErrorNotFound (Error)
