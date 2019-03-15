@@ -6,7 +6,7 @@ API documentation for Home Credit One-Click API (next release preview).
 
 > **IMPORTANT NOTE:** Resource calls made from **Slovakia** MUST use appropriate dedicated `.sk` endpoints. E.g. `https://api.homecredit.sk/financning/v1/applications`
 
-> Version of documentation: `1.15.06.7d66ed0fdd19ef17838fd36a752d9af267afe292`
+> Version of documentation: `1.15.15.eeef57b5087c9b2fb5c967f352fc9ba758674b19`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
@@ -798,6 +798,40 @@ Possible error codes explanation:
     + Attributes (Errors)
 
 
+## !!OBSOLETE!! Precheck [/financing/v1/precheck]
+> **ATTENTION:** This resource is **!!OBSOLETE!!**, use [Precheck operation](#reference/scoring-resources/precheck) instead!
+
+Returns probability of *application's* approval and limits of particular customer, if known to HC
+
+It has to be called with valid access token (see the [Security section](#reference/security)) from your server. If you plan to integrate it in client flow, you should implement REST endpoint bound to your shopping basket session, that will be used as a proxy to call HC API - **NEVER put access token directly to client side**.
+
+Possible error codes explanation:
+| Status code | Code                | Explanation                                                                     |
+| ---         | ---                 | ---                                                                             |
+| 400         | INVALID_REQUEST     | Request was not well formatted (malformed request syntax, size too large, etc.) |
+| 422         | PERSONAL_ID_INVALID | PersonalId is not valid                                                         |
+| 500         | FAILURE             | Internal failure                                                                |
+
+### [OBSOLETE] Precheck [POST]
+Returns probability of *application's* approval and limits of particular customer, if known to HC
+
++ Request (application/json; charset=utf-8)
+    + Attributes (ObsoletePrecheckRequest)
+
+
++ Response 200(application/json; charset=utf-8)
+
+        Probability of approval
+
+    + Attributes (ObsoletePrecheckResults)
+
+
++ Response 400(application/json; charset=utf-8)
+        Error in processing request
+
+    + Attributes (Errors)
+
+
 # Group Installments calculator resources
 When you want to provide your customer (that wants to pay for a purchase by a loan) an option to choose from available installment programs while he is still on your website, it is necessary to implement "installments calculator".
 
@@ -1530,3 +1564,175 @@ API information
 + itemsPerPage: 10 (number, required) - Number of items per page
 + nextPage: `transactions?sort=category&limit=10&after=25` (string, optional) - Request to retrieve next page, if it exists and can be unambiguously specified
 + prevPage: `transactions?sort=category&limit=10&before=25` (string, optional) - Request to retrieve previous page, if it exists and can be unambiguously specified
+
+
+<!-- OBSOLETE PRECHECK DATA STRUCTURES -->
+## ObsoletePrecheckRequest (object)
+Precheck data (has similar structure as `Application`).
+
+### Properties
++ `customer` (ObsoletePrecheckRequestCustomer, optional) - Customer data
++ `order` (ObsoletePrecheckRequestOrder, optional) - Order data
++ `agreementPersonalDataProcessing`: `true` (boolean, optional) - Flag indicating already approved personal data processing
++ `type`: `INSTALLMENT` (enum, optional) - Financing type
+    + `INSTALLMENT` - Pay in monthly installments
++ `settingsInstallment` - Settings for INSTALLMENT Application type.
+    + `preferredMonths`: 10 (number, optional) - Preferred number of installments (in months)
+    + `preferredInstallment` (Amount, optional) - Preferred repayment amount
+    + `preferredDownPayment` (Amount, optional) - Preferred downpayment amount (amount should be rounded to hundreds)
+    + `productCode`: `a122ax` (string, optional) - Product code, this indicates previous calculation result
+    + `productSetCode`: `bc11523` (string, optional) - Product set code, this will limit further calculations
+
+## ObsoletePrecheckRequestCustomer (Customer)
++ `additionalData` (ObsoleteAdditionalDataRequest, optional) - Additional data about the customer
+
+## ObsoletePrecheckRequestOrder (object)
+Order information, needed to create an application.
+
+### Properties
++ `number`: `AA234` (string, optional) - Order number (internal for e-shop)
++ `variableSymbols`: `123456`, `1234567` (array[string], fixed-type, optional) - Variable symbols (internal for e-shop)
++ `totalPrice` (Amount, optional) - Total order amount, including VAT
++ `totalVat` (array[VatAmount], fixed-type, optional) - Total VAT amounts split by their VAT rates
++ `addresses` (array[Address], fixed-type, optional) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
++ `deliveryType` (enum, optional) - Delivery type, for `DELIVERY_CARRIER` type can be further specified by `deliveryCarrier` attribute.
+    + `DELIVERY_CARRIER` - If delivered by carrier - use `deliveryCarrier` for further specification.
+    + `PERSONAL_BRANCH` - Personal collection at branch
+    + `PERSONAL_PARTNER` - Personal collection at partner network
+    + `ONLINE` - Online delivery (e.g. for intangible assets)
++ `deliveryCarrier` (ObsoleteDeliveryCarrier, optional) - Delivery carrier, when applicable.
++ `reservationDate`: `2017-07-15T00:00:00+02:00` (string, optional)
+
+   Date and time until order is reserved.
+
+   Until 'reservationDate' HCO will try to notify partner with Application notification about approval or rejection.
+
+   After this date and time, e-shop does not guarantee items availability (if application processing is longer, it may endanger order fullfillment).
++ `items` (array[ApplicationRequestOrderItem], fixed-type, optional) - Order items
++ `documents` (array[ObsoleteDocument], fixed-type, optional) - Attached documents (invoices etc.)
+
+
+## ObsoleteDeliveryCarrier (object)
+Delivery carrier
+
+### Properties
++ One Of
+    + carrierId (enum, required)
+        + CZ_POST_HAND - Czech Post, Parcel Delivery to Hand
+        + CZ_POST_OFFICE - Czech Post, Parcel Delivery to Post Office
+        + CZ_POST_OTHER - Czech Post, other service
+        + PPL
+        + DPD
+        + GEIS
+        + IN_TIME
+        + TOP_TRANS
+        + GEBRUDER_WEISS
+        + LOCAL_COURIER
+        + TNT
+        + GLS
+        + HDS_COMFORT
+        + HDS_STANDARD
+
+    + carrierCustom: `my custom carrier` (string, required) - For carriers not found in enumeration of customer ID, specify value as text
+
+## ObsoleteAdditionalDataRequest (object)
+Additional data about the customer.
+
+### Properties
++ `personalId`: 7203201234 (string, optional) - Personal identification number (format XXXXXXYYYY or XXXXXX/YYYY)
++ `idCard`: 123456789 (string, optional) - ID card number
++ `idCardExpiryDate`: `2020-05-19` (string, optional) - ID card expiration date
++ `idCardScan` (ObsoleteIdCardScan, optional) - ID card scan
+
+## ObsoleteIdCardScan (object)
+
+### Properties
++ `front` (File, optional) - Front side
++ `back` (File, optional) - Back side
+
+
+## ObsoleteDocument (object)
+Attached document (e.g. invoice, credit note etc.)
+
+### Properties
++ `type` (enum, required) - Type of the document
+    + `INVOICE` - Invoice
+    + `PROFORMA_INVOICE` - Proforma invoice
+    + `CREDIT_NOTE` - Credit note
+    + `OTHER` - Other document type
++ `file` (File, required) - Attached file
++ `description`: `This is an invoice` (string, optional) - File description
++ `extraData` (ObsoleteDocumentExtraData, optional) - Additional data, if applicable
+
+
+## ObsoleteDocumentExtraData (object)
++ `variableSymbol`: `1234567890` (string, optional) - variable symbol (internal for e-shop)
+
+## ObsoletePrecheckResult (object)
+Precheck result.
+
+### Properties
++ `type`: `INSTALLMENT` (enum, required) - Precheck result type for Funding type.
+    + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
++ `recommendation`: `false` (boolean, required) - A recommendation of whether the order should be passed to the HCO.
+    true = Application is going to be likely approved.
+    false = Application is going to be likely rejected.
++ `probabilityOfApproval`: 0 (number, required) - Probability of approval.
+    0 = 0% to be approved
+    1 = 100% to be approved
+    Partner can create custom logic not to follow the recommendation (be more strict or benevolent).
++ `completeness`: 1 (number, optional) - Completness of the result. <0, 1> The lower is the value, the lower accuracy of the result.
++ `code`: NOT_AVAILABLE (enum, required) - Result code.
+    + `OK`
+    + `UNKNOWN`
+    + `ADDITIONAL_DATA_SECURITY` - The customer will be asked to send additional data for security reasons.
+    + `ADDITIONAL_DATA_LIMIT` - The customer has insufficient limit and will be asked to send additional data to increase limit.
+    + `INSUFFICIENT_LIMIT` - The customer has insufficient limit and there is no way to increase it.
+    + `INSUFFICIENT_LIMIT_OPPORTUNITY` - The customer has insufficient limit and can increase it by paying previous not paid orders.
+    + `DETAILS_NOT_MATCHING` - We know the customer, but his personal details does not match with details in his HCO account. Customer will be asked for correcting not matching details.
+    + `REVOLVING_REQUIRED` - The customer cannot continue without revolving contract. See `revolvingCode` and `revolvingUsability` for additional information.
+    + `NOT_AVAILABLE` - Funding type is not available.
++ `customerType`: `UNKNOWN` (enum, required) - Customer type.
+    + `UNKNOWN` - Customer is uknown for HCO.
+    + `FIRST_ORDER` - HCO knows the customer. Customer has no paid orders.
+    + `FULL` -  HCO knows the customer. Customer has at least one paid order.
+    + `BLOCKED` - HCO knows the customer. Customer is blocked.
++ `customerDueDateCategory`:`CATEGORY_CLASSIC` (enum, required)
+    + `CATEGORY_CLASSIC` - customer with classic due date (14 days, with the exception of events (Christmas, etc.))
+    + `CATEGORY_EXTENDED` - customer with extended due date (20th day of next month, with the exception of events (Christmas, etc.))
++ `customerOrdersCountLimit`: 0 (number, optional) - The maximum orders count that the customer can make. Not set if there is no limit.
++ `customerOrdersCountRemaining`: 0 (number, optional) - The remaining orders count that the customer can make. Not set if there is no limit.
++ `revolvingUsability`: false (boolean, optional) - Existing revolving account is usable for financing. For more detailed information see `revolvingCode`.
++ `revolvingCode`: OK (enum, optional)
+    + `OK`
+    + `ADDITIONAL_DATA_SECURITY` - The customer will be asked to send additional data for security reasons (see additionalData).
+    + `ADDITIONAL_ACTION` - The customer will be asked for further actions (increase of the global limit, to sign credit terms... )
+    + `NEW_REVOLVING` - New revolving loan is available for customer.
+    + `NOT_AVAILABLE` - Revolving loan is not available for customer.
++ `message`: `V HCO peněžence nemáte dostatečný limit.` (string, optional) - Custom message for customer.
+    Examples:
+    “V HCO peněžence nemáte dostatečný limit.”
+    “Uveďte do objednávky jméno a příjmení, které používáte ve službě HCO.”
+    etc.
++ `additionalData` (array[string], fixed-type, optional) - List of additional data that customer has to send.
+    Possible values in array: `PERSONAL_ID`, `ID_CARD_NO`, `ID_CARD_EXPIRY_DATE`, `ID_CARD_SCAN`.
++ `additionalActions` (array[string], fixed-type, optional) - List of additional actions which will be required to finish application.
+    Possible values in array: `MOBILE_VERIFICATION`, `ACCOUNT_REGISTRATION`, `LIMIT_INCREASE`, `CREDIT_TERM_SUPPLEMENT`, `PAPERFORM_SUPPLEMENT`.
+
+## ObsoletePrecheckResults (object)
+Precheck results.
+
+### Properties
++ `id` (string, required) - Unique identificator of precheck. Send this identificator in ApplicationRequest for better approval rate.
++ `results` (array[ObsoletePrecheckResult], fixed-type, required) - Precheck results for each type of product.
++ `limits` (ObsoleteLimits, optional)
+    Customer limits.
+    Estimated in case we don!t know the customer.
+    Current customer's limits in case we know him and customer give us an approval for their usage.
+
+## ObsoleteLimits (object)
+Customer's limits
+
+### Properties
++ `availableLimit` (Amount, required) - Customer's available limit
++ `totalLimit` (Amount, required) - Customer's global limit
