@@ -1,7 +1,7 @@
 FORMAT: 1A
 HOST: https://api.homecredit.cz
 
-# CS - OneClick API - Installments - FUTURE
+# HC OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
 > **IMPORTANT NOTE:** Resource calls made from **Slovakia** MUST use appropriate dedicated `.sk` endpoints. E.g. `https://api.homecredit.sk/financning/v1/applications`
@@ -388,7 +388,6 @@ In other cases, you receive one of the following errors:
 | ---         | ---                   | ---                                                                              |
 | 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
 | 404         | APPLICATION_NOT_FOUND | The requested resource could not be found                                        |
-| 422         | NOT_SUPPORTED         | Resource is not supported for given financing type                               |
 | 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
 | 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
 
@@ -438,7 +437,6 @@ In other cases, you receive one of the following errors:
 | ---         | ---                   | ---                                                                              |
 | 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
 | 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                        |
-| 422         | NOT_SUPPORTED         | Resource is not supported for given financing type                               |
 | 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
 | 422         | APPLICATION_REJECTED  | When you try to cancel already `REJECTED` `Application`, which is not allowed    |
 | 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
@@ -518,7 +516,6 @@ In other cases, you receive one of the following errors:
 | ---         | ---                    | ---                                                                              |
 | 400         | INVALID_REQUEST        | Request was not well formatted (malformed request syntax, size too large, etc.)  |
 | 404         | OBJECT_NOT_FOUND       | The requested resource could not be found                                        |
-| 422         | NOT_SUPPORTED          | Resource is not supported for given financing type                               |
 | 422         | UNPROCESSABLE          | The request was well-formed but was unable to be followed due to semantic errors |
 | 422         | DUPLICATE_ORDER_NUMBER | Change to already existing not cancelled order number is not allowed             |
 | 500         | INTERNAL_SERVER_ERROR  | Unexpected condition was encountered and no more specific message is suitable    |
@@ -557,12 +554,12 @@ Change *order*. Used to change order number and/or variable symbol.
     + Attributes (ErrorsNotFound)
 
 
-+ Request Example_NOT_SUPPORTED (application/json; charset=utf-8)
++ Request Example_UNPROCESSABLE (application/json; charset=utf-8)
     + Attributes (OrderChangeRequest)
 
 + Response 422(application/json; charset=utf-8)
     Order can not be changed.
-    + Attributes (ErrorsNotSupported)
+    + Attributes (ErrorsUnprocessable)
 
 
 
@@ -609,7 +606,6 @@ If the request was successfully processed, you receive HTTP status code 200 and 
   | ---         | ---                   | ---                                                                              |
   | 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
   | 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                        |
-  | 422         | NOT_SUPPORTED         | Resource is not in supported state (substate)                                    |
   | 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
   | 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
 
@@ -678,7 +674,6 @@ In other cases, you receive one of the following errors:
 | ---         | ---                   | ---                                                                              |
 | 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
 | 404         | OBJECT_NOT_FOUND      | The requested resource could not be found                                        |
-| 422         | NOT_SUPPORTED         | Resource is not in supported state (substate)                                    |
 | 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
 | 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
 
@@ -1108,7 +1103,7 @@ Use this resource for changing Application state (`stateReason`) to desired one.
 
          Transition is not allowed
 
-     + Attributes (ErrorsNotSupported)
+     + Attributes (ErrorsUnprocessable)
 
 # Data Structures
 
@@ -1522,13 +1517,13 @@ API information
 + errors (array[ErrorNotFound], fixed-type, required) - Array with errors
 
 
-## ErrorNotSupported (Error)
-+ code: `NOT_SUPPORTED` (string, required) - Unique internal error code
+## ErrorUnprocessable (Error)
++ code: `UNPROCESSABLE` (string, required) - Unique internal error code
 + message: `Current application status not allows requested operation` (string, required) - Human readable error description (non-localized)
 
 
-## ErrorsNotSupported (object)
-+ errors (array[ErrorNotSupported], fixed-type, required) - Array with errors
+## ErrorsUnprocessable (object)
++ errors (array[ErrorUnprocessable], fixed-type, required) - Array with errors
 
 
 ## PagingInfo (object)
