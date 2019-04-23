@@ -4,11 +4,12 @@ HOST: https://api.homecredit.cz
 # HC OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.16.05.eeef57b5087c9b2fb5c967f352fc9ba758674b19`
+> Version of documentation: `1.16.23.cd76aecef9738915234abd236e2accba5d2b814e`
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
-| 1.16.05 | CS55    | 4.6.2019     | Resource [Change application order](#reference/application-resources/change-application-order) returns new error code 422 DUPLICATE_ORDER_NUMBER when trying to update `order.number` to already existing not cancelled order number |
+| 1.16.05 | CS55    | 4.6.2019     | Resource [Change application order](#reference/application-resources/change-application-order) returns new error code 422 DUPLICATE_ORDER_NUMBER when trying to update `Order.number` to already existing `Order.number` of not cancelled `Order` |
+| 1.16.23 | CS55    | 4.6.2019     | Resource [Create application](#reference/application-resources/create-application) can return new error code 422 DUPLICATE_ORDER_NUMBER when trying to create new `Application` that contains the same `Order.number` as already existing `Order` not in supported state |
 
 In case of any question, please contact our integration department (integrace_eshop@homecredit.cz).
 
@@ -297,14 +298,18 @@ If the request was successfully processed, you receive HTTP status code 201 and 
 
 > You may also receive information about initially requested **down payment** - this can be later changed by customer during the process of finalization of financing application. In such cases we recommend you to check the final **down payment** of approved loan (after the *application* is approved) via `/financing/v1/applications/{applicationId}`.
 
-If the request was recognized as duplication, you receive HTTP status code 200 and the *application* object created during the first related successful request.
+If the request was **recognized as duplication**
+- and previously created `Application` has `Application.state = CANCELLED` and `Application.stateReason = CANCELLED_NOT_PAID`, new `Application` is created, you receive HTTP status code 201 and `Application` object with information specified above (at least) in the response
+- and previously created `Application` has `Application.state = PROCESSING`, no `Application` is created, you receive HTTP status code 200 and the `Application` object created during the first related successful resource call.
+- and previously created `Application` has other combination of a `Application.state` a `Application.stateReason`, you receive HTTP status code 422 with error code `DUPLICATE_ORDER_NUMBER`.
 
-In other cases, you receive one of the following errors:
-| Status code | Code                  | Explanation                                                                      |
-| ---         | ---                   | ---                                                                              |
-| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
-| 422         | UNPROCESSABLE         | Request was well-formed but was unable to be followed due to semantic errors     |
-| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+In case of an error, you receive one of the following results:
+| Status code | Code                   | Explanation                                                                     |
+| ---         | ---                    | ---                                                                             |
+| 400         | INVALID_REQUEST        | Request was not well formatted (malformed request syntax, size too large, etc.) |
+| 422         | UNPROCESSABLE          | Request was well-formed but was unable to be followed due to semantic errors    |
+| 422         | DUPLICATE_ORDER_NUMBER | Creating of Application with duplicated Order number is not allowed             |
+| 500         | INTERNAL_SERVER_ERROR  | Unexpected condition was encountered and no more specific message is suitable   |
 
 
 ### Create application [POST]
@@ -509,13 +514,13 @@ If the request was successfully processed, you receive HTTP status code 200 and 
   - Application substate
 
 In other cases, you receive one of the following errors:
-| Status code | Code                   | Explanation                                                                      |
-| ---         | ---                    | ---                                                                              |
-| 400         | INVALID_REQUEST        | Request was not well formatted (malformed request syntax, size too large, etc.)  |
-| 404         | OBJECT_NOT_FOUND       | The requested resource could not be found                                        |
-| 422         | UNPROCESSABLE          | The request was well-formed but was unable to be followed due to semantic errors |
-| 422         | DUPLICATE_ORDER_NUMBER | Change to already existing not cancelled order number is not allowed             |
-| 500         | INTERNAL_SERVER_ERROR  | Unexpected condition was encountered and no more specific message is suitable    |
+| Status code | Code                   | Explanation                                                                       |
+| ---         | ---                    | ---                                                                               |
+| 400         | INVALID_REQUEST        | Request was not well formatted (malformed request syntax, size too large, etc.)   |
+| 404         | OBJECT_NOT_FOUND       | The requested resource could not be found                                         |
+| 422         | UNPROCESSABLE          | The request was well-formed but was unable to be followed due to semantic errors  |
+| 422         | DUPLICATE_ORDER_NUMBER | Change to already existing order number of not cancelled order is not allowed     |
+| 500         | INTERNAL_SERVER_ERROR  | Unexpected condition was encountered and no more specific message is suitable     |
 
 
 + Parameters
