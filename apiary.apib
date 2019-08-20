@@ -47,18 +47,15 @@ Basic and minimum way how to implement HCO API is to at least implement:
 
 It is necessary to fill in all attributes marked as required in the request but filling optional parameters will result in better application approval rate. You should always consider to fill as many attributes as possible. Contact the sales support to find out which attributes correlate with approval rate the most.
 
-
 ## Naming conventions
 - we use camelCase for all object and attribute names
 - we use CAPITAL_UNDERSCORE for enum values
 - we use plural in resource names
 
-
 ## Documentation principles
 - attributes in request/response object are optional, unless stated otherwise (`required` flag under attribute name)
 - required attribute in optional object means, that if optional object is specified, it must contain required attribute.
 - all values in request/response attributes are just examples, except for enum values - these are the only possible values for given attribute.
-
 
 ## Request restrictions
 Please, keep in mind following restrictions regarding requests:
@@ -79,7 +76,6 @@ Please, keep in mind following restrictions regarding requests:
 | image/jpeg                                                                | *.jpg, *.jpeg              |
 | image/png                                                                 | *.png                      |
 | image/gif                                                                 | *.gif                      |
-
 
 ## API calls limits
 When you reach API calls limit (you call the API more times than is your quota), you receive HTTP error 429. To inform you about limits we use following response headers:
@@ -181,7 +177,6 @@ There are 3 levels of error severity:
 We support partial update using PATCH method. Use JSON Merge Patch according to [RFC-7386](https://tools.ietf.org/html/rfc7386).
 -->
 
-
 ### Parameters added to your return URLs
 - During redirection of the customer from Home Credit's front-end back to e-shop (to one of the provided URLs - `approvedRedirectUrl`, `rejectedRedirectUrl`) there are some potentially useful information about a customer's outcome in Home Credit's front-end added:
 - `orderNumber` (string) - E-shop's internal order number provided within API call of [Create application](#reference/application-resources/create-application)
@@ -192,8 +187,6 @@ We support partial update using PATCH method. Use JSON Merge Patch according to 
 - `checkSum` (string) – hashed message
 
 - e.g. `http://youreshop.cz?orderNumber=0606104036&stateReason=PROCESSING_SIGNED&downPayment=100000&checkSum=443E150D3406F6A8DC62C1DB224AFDD84FA9907071BB1AD9B2C7701031793662191501B26AADF3A31361341EA176C80B23D8A9A5E5B5219538289945FE0C20A7&applicationId=01-11b00a1ef1&withdrawal=false`
-
-
 
 
 # Group Security
@@ -977,7 +970,7 @@ Error in processing request
 
 
 ## Group JavaScript widget integration
-In order to use Home Credit's javascript widget as an installment calculator, your e-shop back-end has to be configured properly. How to do it is currently described in [our on-line repository](https://github.com/homecreditcz/widget-calculator/blob/master/install.md) (currently written in Czech).
+In order to use Home Credit's javascript widget as an installment calculator, your e-shop back-end has to be configured properly. How to do it is currently described in [our on-line repository](https://github.com/homecreditcz/widget-calculator) (currently written in Czech).
 
 
 # Group Health check
