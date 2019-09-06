@@ -267,21 +267,19 @@ Use `/financing/v1/applications` resource with properly filled request that cont
   - Name (first name and last name - if possible, otherwise full name)
   - E-mail
   - Phone number
-- Order details
-  - Number
-  - Total Price (including VAT)
-  - Total VAT (array of total amounts split by VAT rates)
-  - Addresses (array, at least one item is required - type BILLING)
+  - Addresses (array, at least one item is required - type CONTACT)
     - City
     - Street
     - Street number
     - ZIP
     - Address type
+- Order details
+  - Number
+  - Total Price (including VAT)
   - Order items (array, at least one item is required)
     - Code
     - Order item name
     - Total price (all pieces, including VAT)
-    - Total VAT
 - Financing type (always `INSTALLMENT`)
 - Financing type details
   - \*Installment settings - preferred installment amount
@@ -497,17 +495,9 @@ Use `/financing/v1/applications/{applicationId}/order` resource with properly fi
 If the request was successfully processed, you receive HTTP status code 200 and object of information about changed *order* plus basic information about respective *application* (ID, state, substate) with at least following information in the response:
 - Order number
 - Order total price (including VAT)
-- Order total VAT (array of VAT amounts split by VAT rates)
-- Addresses (array)
-  - City
-  - Street
-  - Street number
-  - ZIP
-  - Address type
 - Order items (array)
   - Order item name
   - Total price (all pieces, including VAT)
-  - Total VAT
   - Order item state
 - Order state
 - Application basic information
@@ -587,17 +577,9 @@ When the whole *order* was shipped to the customer, use `/financing/v1/applicati
 If the request was successfully processed, you receive HTTP status code 200 and object of information about changed *order* plus basic information about respective *application* (ID, state, substate) with at least following information in the response:
 - Order number
 - Order total price (including VAT)
-- Order total VAT (array of VAT amounts split by VAT rates)
-- Addresses (array)
-  - City
-  - Street
-  - Street number
-  - ZIP
-  - Address type
 - Order items (array)
   - Order item name
   - Total price (all pieces, including VAT)
-  - Total VAT
   - Order item state
 - Order state
 - Application basic information
@@ -655,17 +637,9 @@ When the whole *order* was delivered to the customer, use `/financing/v1/applica
 If the request was successfully processed, you receive HTTP status code 200 and object of information about changed *order* plus basic information about respective *application* (ID, state, substate) with at least following information in the response:
 - Order number
 - Order total price (including VAT)
-- Order total VAT (array of VAT amounts split by VAT rates)
-- Addresses (array)
-  - City
-  - Street
-  - Street number
-  - ZIP
-  - Address type
 - Order items (array)
   - Order item name
   - Total price (all pieces, including VAT)
-  - Total VAT
   - Order item state
 - Order state
 - Application basic information
@@ -722,17 +696,9 @@ If you need to find out current information about particular *order* - primarily
 If the request was successfully processed, you receive HTTP status code 200 and object of information about specified *order* plus basic information about respective *application* (ID, state, substate) with at least following information in the response:
 - Order number
 - Order total price (including VAT)
-- Order total VAT (array of VAT amounts split by VAT rates)
-- Addresses (array)
-  - City
-  - Street
-  - Street number
-  - ZIP
-  - Address type
 - Order items (array)
   - Order item name
   - Total price (all pieces, including VAT)
-  - Total VAT
   - Order item state
 - Order state
 - Application basic information
@@ -1153,7 +1119,7 @@ Financing application request
 + `customer` (Customer, required) - Customer information
 + `order` (OrderBase, required) - Order information
 + `type` (enum, required) - Financing type
-    + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
+   + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
 + `settingsInstallment` (SettingsInstallment, required) - Settings for INSTALLMENT Application type.
 + `merchantUrls` (MerchantUrls, required) - Collection of partner's URLs used for redirection of a customer back to a partner website or as a notification endpoint
 + `precheckIds` (array[string], fixed-type, optional) - Array of all precheck ids related to this application. See [Precheck operation](#reference/scoring-resources/precheck/create-application) and it's response.
@@ -1164,26 +1130,26 @@ Financing application base information
 
 ### Properties
 + `id`: `01-11200a0ee1` (string, required) - Unique identifier in HCO
-+ `state`: `PROCESSING` (enum, required) - Application state.
-    + `PROCESSING` - Application is being processed by HC
-    + `READY` - Application was approved and is ready for financing
-    + `REJECTED` - Application was rejected
-    + `CANCELLED` - Application was cancelled by client, either before approval or after delivery
-+ `stateReason`: `PROCESSING_REDIRECT_NEEDED` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
-    + `PROCESSING_REDIRECT_NEEDED` - Redirect to HC is needed. Redirect user to `gatewayRedirectUrl`.
-    + `PROCESSING_PREAPPROVED` - Preliminary approval by HC
-    + `PROCESSING_APPROVED` - Approved by HC, to be signed by client
-    + `PROCESSING_REVIEW` - Manual review by HC in progress
-    + `PROCESSING_ALT_OFFER` - Alternative offered to client
-    + `PROCESSING_SIGNED` - Signed by client, to verification by HC
-    + `READY_TO_SHIP` - Financing approved, goods ready to be shipped to client
-    + `READY_SHIPPED` - Goods shipped to client
-    + `READY_DELIVERING` - Verification of goods delivery
-    + `READY_DELIVERED` - Goods delivered to client
-    + `READY_PAID` - Paid to merchant
-    + `REJECTED` - Rejected by HC
-    + `CANCELLED_NOT_PAID` - Cancelled before delivery
-    + `CANCELLED_RETURNED` - Cancelled after delivery, goods returned to merchant
++ `state` (enum, required) - Application state.
+   + `PROCESSING` - Application is being processed by HC
+   + `READY` - Application was approved and is ready for financing
+   + `REJECTED` - Application was rejected
+   + `CANCELLED` - Application was cancelled by client, either before approval or after delivery
++ `stateReason` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
+   + `PROCESSING_REDIRECT_NEEDED` - Redirect to HC is needed. Redirect user to `gatewayRedirectUrl`.
+   + `PROCESSING_PREAPPROVED` - Preliminary approval by HC
+   + `PROCESSING_APPROVED` - Approved by HC, to be signed by client
+   + `PROCESSING_REVIEW` - Manual review by HC in progress
+   + `PROCESSING_ALT_OFFER` - Alternative offered to client
+   + `PROCESSING_SIGNED` - Signed by client, to verification by HC
+   + `READY_TO_SHIP` - Financing approved, goods ready to be shipped to client
+   + `READY_SHIPPED` - Goods shipped to client
+   + `READY_DELIVERING` - Verification of goods delivery
+   + `READY_DELIVERED` - Goods delivered to client
+   + `READY_PAID` - Paid to merchant
+   + `REJECTED` - Rejected by HC
+   + `CANCELLED_NOT_PAID` - Cancelled before delivery
+   + `CANCELLED_RETURNED` - Cancelled after delivery, goods returned to merchant
 
 ## Application (ApplicationBase)
 Financing application
@@ -1191,8 +1157,8 @@ Financing application
 ### Properties
 + `customer` (CustomerBase, optional) - Customer data
 + `order` (Order, required) - Order data
-+ `type`:  `INSTALLMENT` (enum, required) - Financing type
-    + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
++ `type` (enum, required) - Financing type
+   + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
 + `settingsInstallment` (SettingsInstallment, required) - Settings for INSTALLMENT Application type.
 + `gatewayRedirectUrl`: `https://www.ourloan.cz/application/11200a0ee1` (string, optional) - Gateway redirect URL. Redirect user to this URL if state is `PROCESSING` and stateReason is `PROCESSING_REDIRECT_NEEDED`.
 
@@ -1246,15 +1212,15 @@ Customer data
 Specification of the reason why the application is cancelled.
 
 ### Properties
-+ `reason`: `APPLICATION_CANCELLED_BY_CUSTOMER` (enum, optional) - Reason of cancellation. Considered as `APPLICATION_CANCELLED_OTHER` if not set.
-    + `APPLICATION_CANCELLED_CARRIER_CHANGED` - Order carrier changed
-    + `APPLICATION_CANCELLED_CART_CONTENT_CHANGED` - Cart content changed or customer returned from the cart
-    + `APPLICATION_CANCELLED_BY_CUSTOMER` - Customer cancelled order (in his profile or through customer center)
-    + `APPLICATION_CANCELLED_BY_ERP` - Cancelled by e-shop's back-office process (e.g. some items unavailable)
-    + `APPLICATION_CANCELLED_EXPIRED` - Application expired (too long waiting time for response from HC)
-    + `APPLICATION_CANCELLED_UNFINISHED` - Customer did not finish order
-    + `APPLICATION_CANCELLED_BY_ESHOP_RULES` - Internal e-shop rules breached (e.g. problem with customer's additional data)
-    + `APPLICATION_CANCELLED_OTHER` - Other reason - specified in `customReason`
++ `reason` (enum, optional) - Reason of cancellation. Considered as `APPLICATION_CANCELLED_OTHER` if not set.
+   + `APPLICATION_CANCELLED_CARRIER_CHANGED` - Order carrier changed
+   + `APPLICATION_CANCELLED_CART_CONTENT_CHANGED` - Cart content changed or customer returned from the cart
+   + `APPLICATION_CANCELLED_BY_CUSTOMER` - Customer cancelled order (in his profile or through customer center)
+   + `APPLICATION_CANCELLED_BY_ERP` - Cancelled by e-shop's back-office process (e.g. some items unavailable)
+   + `APPLICATION_CANCELLED_EXPIRED` - Application expired (too long waiting time for response from HC)
+   + `APPLICATION_CANCELLED_UNFINISHED` - Customer did not finish order
+   + `APPLICATION_CANCELLED_BY_ESHOP_RULES` - Internal e-shop rules breached (e.g. problem with customer's additional data)
+   + `APPLICATION_CANCELLED_OTHER` - Other reason - specified in `customReason`
 + `customReason` (string, optional) - Specification of `APPLICATION_CANCELLED_OTHER` reason
 
 
@@ -1265,13 +1231,13 @@ Order information, needed to create an application.
 + `number`: `AA234` (string, required) - Order number (internal for e-shop). Maximum length 100 characters.
 + `variableSymbols`: `123456`, `1234567` (array[string], fixed-type, optional) - Variable symbols (internal for e-shop). For the financing type `INSTALLMENT` the first variable symbol in this array is used as the variable symbol of the reconciliation payment. Max 10 characters per variable symbol.
 + `totalPrice` (AmountOld, required) - Total order amount, including VAT
-+ `totalVat` (array[VatAmountOld], fixed-type, required) - Total VAT amounts split by their VAT rates
-+ `addresses` (array[Address], fixed-type, required) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
-+ `deliveryType`:`PERSONAL_BRANCH` (enum, optional) - Delivery type.
-    + `DELIVERY_CARRIER`
-    + `PERSONAL_BRANCH` - Personal collection at branch
-    + `PERSONAL_PARTNER` - Personal collection at partner network
-    + `ONLINE` - Online delivery (e.g. for intangible assets)
++ `totalVat` (array[VatAmountOld], fixed-type, optional) - Total VAT amounts split by their VAT rates
++ `addresses` (array[Address], fixed-type, optional) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
++ `deliveryType` (enum, optional) - Delivery type.
+   + `DELIVERY_CARRIER`
+   + `PERSONAL_BRANCH` - Personal collection at branch
+   + `PERSONAL_PARTNER` - Personal collection at partner network
+   + `ONLINE` - Online delivery (e.g. for intangible assets)
 + `reservationDate`: `2017-07-15T00:00:00+02:00` (string, optional) - Date and time until order is reserved. After this date and time, e-shop does not guarantee items availability (e.g. if application processing is longer, it may endanger order fullfillment).
 + `items` (array[ApplicationRequestOrderItem], fixed-type, required) - Order items
 
@@ -1281,12 +1247,12 @@ Order information, needed to create an application.
 Order information.
 
 ### Properties
-+ `state`: `PROCESSING` (enum, required) - Order state.
-    + `PROCESSING` - Order is being processed by merchant
-    + `SENT` - All order items was sent to customer
-    + `DELIVERED` - All order items was delivered to customer
-    + `RETURNED` - All order items was returned to merchant
-    + `CANCELLED` - Order was fully cancelled
++ `state` (enum, required) - Order state.
+   + `PROCESSING` - Order is being processed by merchant
+   + `SENT` - All order items was sent to customer
+   + `DELIVERED` - All order items was delivered to customer
+   + `RETURNED` - All order items was returned to merchant
+   + `CANCELLED` - Order was fully cancelled
 + `items` (array[OrderItem], fixed-type, required) - Order items
 
 ## OrderExtended (Order)
@@ -1310,21 +1276,21 @@ Order item base information, needed to identify order item
 Order item information, needed to create an application.
 
 ### Properties
-+ `type`: `PHYSICAL` (enum, optional) - Item type
-    + `PHYSICAL`
-    + `DISCOUNT`
-    + `SHIPPING_FEE`
-    + `SALES_TAX`
-    + `DIGITAL`
-    + `GIFT_CARD`
-    + `STORE_CREDIT`
-    + `FEE`
-    + `INSURANCE`
++ `type` (enum, optional) - Item type
+   + `PHYSICAL`
+   + `DISCOUNT`
+   + `SHIPPING_FEE`
+   + `SALES_TAX`
+   + `DIGITAL`
+   + `GIFT_CARD`
+   + `STORE_CREDIT`
+   + `FEE`
+   + `INSURANCE`
 + `producer`: `Apple` (string, optional) - Maximum 50 characters.
 + `unitPrice` (AmountOld, optional) - Price per one piece. If empty, automatically considered that `unitPrice` is `totalPrice` / `quantity`.
 + `unitVat` (VatAmountOld, optional) - VAT amount per one piece. If empty, automatically considered that `unitVat` is `totalVat` / `quantity`.
 + `totalPrice` (AmountOld, required) - Total price for all pieces, VAT inclusive
-+ `totalVat` (VatAmountOld, required) - Total VAT amount for all pieces
++ `totalVat` (VatAmountOld, optional) - Total VAT amount for all pieces
 + `image` (File, optional) - Item image
 
 
@@ -1332,19 +1298,19 @@ Order item information, needed to create an application.
 Order item information.
 
 ### Properties
-+ `state`: `PROCESSING` (enum, required) - Order state.
-    + `PROCESSING` - Oorder item delivery is being processed by merchant
-    + `SENT` - Items wa sent to customer
-    + `DELIVERED` - Order item was delivered to customer
-    + `RETURNED` - Order item was returned to merchant
-    + `CANCELLED` - Order item was cancelled
++ `state` (enum, required) - Order state.
+   + `PROCESSING` - Oorder item delivery is being processed by merchant
+   + `SENT` - Items wa sent to customer
+   + `DELIVERED` - Order item was delivered to customer
+   + `RETURNED` - Order item was returned to merchant
+   + `CANCELLED` - Order item was cancelled
 
 ## SettingsInstallment (object)
 + `preferredMonths`: 6 (number, optional) - Preferred number of installments (in months)
 + `preferredInstallment` (AmountOld, optional) - Preferred repayment amount
-    + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+   + `amount`: 221900 (number, required) - Amount in minor units (221900 represents 2219) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `preferredDownPayment` (AmountOld, optional) - Preferred down payment amount (amount should be rounded to hundreds CZK/ 5 EUR)
-    + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+   + `amount`: 0 (number, required) - Amount in minor units (12590 represents 125,90) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `productCode`: `COCONL06` (string, optional) - Product code, this indicates previous calculation result
 + `productSetCode`: `COCHCONL` (string, optional) - Product set code, this will limit further calculations
 
@@ -1358,11 +1324,11 @@ Address
 + `streetAddress`: `Letenská` (string, required) - Street/city part. String values longer than 100 characters will be shortened to 100 characters.
 + `streetNumber`: `22` (string, required) - Street number. String values longer than 50 characters will be shortened to 50 characters.
 + `zip`: `140 00` (string, required) - Postal code. String values longer than 10 characters will be shortened to 10 characters.
-+ `addressType`: `DELIVERY` (enum, required) - Type of the address. Only some of the types are allowed in each context.
-    + `PERMANENT` - Permanent residential address
-    + `CONTACT` - Contact address
-    + `DELIVERY` - Delivery address
-    + `BILLING` - Billing address
++ `addressType` (enum, required) - Type of the address. Only some of the types are allowed in each context.
+   + `PERMANENT` - Permanent residential address
+   + `CONTACT` - Contact address
+   + `DELIVERY` - Delivery address
+   + `BILLING` - Billing address
 
 
 ## MerchantUrls (object)
@@ -1388,7 +1354,7 @@ Precheck result.
 + `id`: `1234` (string, required) - Unique identificator of Precheck. Send this identificator in ApplicationRequest for better approval rate.
 + `recommendation`:`false`  (boolean, required) - A recommendation of whether the order should be passed to the HCO.
     true = Application is likely going to be approved.
-    false = Application is likely going to be rejected.
+   false = Application is likely going to be rejected.
 + `message`:`V HCO peněžence nemáte dostatečný limit.` (string, optional) - Custom message for customer.
 
 
@@ -1401,12 +1367,12 @@ Installment programs
 
 ### Properties
 + `productCode`: `COCONL06` (string, required) - Installment program product code
-+ `type`: `FAVOURITE` (enum, optional) - Program type
-    + `MINIMAL` - Lowest installment
-    + `FAVOURITE` - Recommended (favourite) installment program
-    + `OTHER` - Other
++ `type` (enum, optional) - Program type
+   + `MINIMAL` - Lowest installment
+   + `FAVOURITE` - Recommended (favourite) installment program
+   + `OTHER` - Other
 + `installment` (AmountOld, optional) - monthly installment amount
-    + `amount`: 221900 (number, required) - Amount in minor units (250000 represents 2500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+   + `amount`: 221900 (number, required) - Amount in minor units (250000 represents 2500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `numberOfInstallments`: 6 (number, optional) - installment count
 
 
@@ -1421,7 +1387,7 @@ Installment programs
 + `annualInterestRate`: 0.1743 (number, optional) - Annual interest rate
 + `predictedProvisionDate`: `2018-08-10` (string, optional) - Predicted provision date
 + `paidBack` (AmountOld, optional) - Total amount paid by customer
-    + `amount`: 1331400 (number, required) - Amount in minor units (250000 represents 2500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+   + `amount`: 1331400 (number, required) - Amount in minor units (250000 represents 2500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `rpsn`: 0.19 (number, optional) - RPSN
 + `legalline`: "Každou žádost posuzujeme individuálně a uvedené hodnoty jsme vám spočítali na míru.\nPlatí pro čerpání k 10.08.2018, datum první splátky je k 20.09.2018 a datum dalších splátek vždy k 20. dni v měsíci, počínaje 20.10.2018 a při lhůtě splatnosti 20.02.2019." (string, optional) - Text interpretation of the offer
 
@@ -1431,25 +1397,25 @@ Down payments information - the lowest down payment possible, the maximum down p
 
 ### Properties
 + `minimum` (AmountOld, optional) - The lowest down payment amount, e.g. 0 (0 CZK/EUR)
-    + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+   + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `maximum` (AmountOld, optional) - Maximum down payment amount, e.g. 2500 (2 500 CZK/EUR)
-    + `amount`: 250000 (number, required) - Amount in minor units (250000 represents 2500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+   + `amount`: 250000 (number, required) - Amount in minor units (250000 represents 2500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 + `step` (AmountOld, optional) - Size of one step between the lowest and maximum down payment amounts, e.g. 500 (500 CZK/EUR). Available down payments could be (min 0, max 2500): 0, 500, 1000, 1500, 2000, 2500
-    + `amount`: 50000 (number, required) - Amount in minor units (50000 represents 500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+   + `amount`: 50000 (number, required) - Amount in minor units (50000 represents 500 CZK/EUR) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 
 ## InstallmentProgramsRequest (object)
 + `productCode`: `COCONL06` (string, required) - Product code, this indicates previous calculation result
 + `price` (AmountOld, required) - Goods price
 + `downPayment` (AmountOld, optional) - Down payment amount (default is 0, amount should be rounded to hundreds)
-    + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+   + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 
 ## InstallmentProgramsOffersRequest (object)
 + `productSetCode`: `COCHCONL` (string, optional) - Product set code, this will limit further calculations. If not provided, default productSet will be used.
 + `price` (AmountOld, required) - Order price
 + `downPayment` (AmountOld, optional) - Down payment amount (default is 0, amount should be rounded to hundreds)
-    + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
+   + `amount`: 0 (number, required) - Amount in minor units [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217)
 
 
 ## InstallmentProgramsDownPaymentsRequest (object)
@@ -1462,35 +1428,35 @@ API information
 
 ### Properties
 + `build` (object, required)
-    + `version`: `38.3.0-0-SNAPSHOT` (string, required) - ATL version
-    + `artifact`: `atl-cs-app` (string, required) - Maven artifact name
-    + `name`: `ATL CS - App` (string, required) - Official artifact name (human readable)
-    + `group`: `eu.homecredit.openapi-cs` (string, required) - Artifact group name
-    + `time`: 1510739838000 (number, required) - Artifact (build) creation time (timestamp)
+   + `version`: `38.3.0-0-SNAPSHOT` (string, required) - ATL version
+   + `artifact`: `atl-cs-app` (string, required) - Maven artifact name
+   + `name`: `ATL CS - App` (string, required) - Official artifact name (human readable)
+   + `group`: `eu.homecredit.openapi-cs` (string, required) - Artifact group name
+   + `time`: 1510739838000 (number, required) - Artifact (build) creation time (timestamp)
 
 ## NotificationRequest (ApplicationBase)
 + `orderNumber`: `AA234` (string, required) - Order number (internal for e-shop)
 + `notificationDate`: `2017-07-15T00:00:00+02:00` (string, required) – Date of change of application status.
-+ `orderState`: `PROCESSING` (enum, required) - Order state.
-    + `PROCESSING` - Order is being processed by merchant
-    + `SENT` - All order items was sent to customer
-    + `DELIVERED` - All order items was delivered to customer
-    + `RETURNED` - All order items was returned to merchant
-    + `CANCELLED` - Order was fully cancelled
++ `orderState` (enum, required) - Order state.
+   + `PROCESSING` - Order is being processed by merchant
+   + `SENT` - All order items was sent to customer
+   + `DELIVERED` - All order items was delivered to customer
+   + `RETURNED` - All order items was returned to merchant
+   + `CANCELLED` - Order was fully cancelled
 + `sentDate`: `2017-07-16T00:00:00+02:00` (string, required) – Date of sending notification (=actual date).
 + `checkSum`: `443E150D3406F6A8DC62C1DB224AFDD84FA9907071BB1AD9B2C7701031793662191501B26AADF3A31361341EA176C80B23D8A9A5E5B5219538289945FE0C20A7` (string, required) – Hashed message
 + `sequenceNumber`: 1 (number, required) - Sequence number of notification for corresponding application. Starts at value of 1.
 
 ## IntegrationChangeStateRequest (object)
-+ `stateReason`: `PROCESSING_APPROVED` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
-   + `REJECTED` - Rejected by HC
-   + `PROCESSING_APPROVED` - Approved by HC, to be signed by client
-   + `PROCESSING_SIGNED` - Signed by client, to verification by HC
-   + `READY_TO_SHIP` - Financing approved, goods ready to be shipped to client
-   + `READY_DELIVERED` - Goods delivered to client
-   + `READY_PAID` - Paid to merchant
-   + `CANCELLED_NOT_PAID` - Cancelled before delivery
-   + `CANCELLED_RETURNED` - Cancelled after delivery, goods returned to merchant.
++ `stateReason` (enum, required) - Describes internal state of application, e.g. when state is PROCESSING - reason why application remains in processing state
+  + `REJECTED` - Rejected by HC
+  + `PROCESSING_APPROVED` - Approved by HC, to be signed by client
+  + `PROCESSING_SIGNED` - Signed by client, to verification by HC
+  + `READY_TO_SHIP` - Financing approved, goods ready to be shipped to client
+  + `READY_DELIVERED` - Goods delivered to client
+  + `READY_PAID` - Paid to merchant
+  + `CANCELLED_NOT_PAID` - Cancelled before delivery
+  + `CANCELLED_RETURNED` - Cancelled after delivery, goods returned to merchant.
 
 
 <!-- OBSOLETE PRECHECK DATA STRUCTURES -->
@@ -1501,14 +1467,14 @@ Precheck data (has similar structure as `Application`).
 + `customer` (ObsoletePrecheckRequestCustomer, optional) - Customer data
 + `order` (ObsoletePrecheckRequestOrder, optional) - Order data
 + `agreementPersonalDataProcessing`: `true` (boolean, optional) - Flag indicating already approved personal data processing
-+ `type`: `INSTALLMENT` (enum, optional) - Financing type
-    + `INSTALLMENT` - Pay in monthly installments
++ `type` (enum, optional) - Financing type
+   + `INSTALLMENT` - Pay in monthly installments
 + `settingsInstallment` - Settings for INSTALLMENT Application type.
-    + `preferredMonths`: 10 (number, optional) - Preferred number of installments (in months)
-    + `preferredInstallment` (AmountOld, optional) - Preferred repayment amount
-    + `preferredDownPayment` (AmountOld, optional) - Preferred downpayment amount (amount should be rounded to hundreds)
-    + `productCode`: `a122ax` (string, optional) - Product code, this indicates previous calculation result
-    + `productSetCode`: `bc11523` (string, optional) - Product set code, this will limit further calculations
+   + `preferredMonths`: 10 (number, optional) - Preferred number of installments (in months)
+   + `preferredInstallment` (AmountOld, optional) - Preferred repayment amount
+   + `preferredDownPayment` (AmountOld, optional) - Preferred downpayment amount (amount should be rounded to hundreds)
+   + `productCode`: `a122ax` (string, optional) - Product code, this indicates previous calculation result
+   + `productSetCode`: `bc11523` (string, optional) - Product set code, this will limit further calculations
 
 ## ObsoletePrecheckRequestCustomer (Customer)
 + `additionalData` (ObsoleteAdditionalDataRequest, optional) - Additional data about the customer
@@ -1523,18 +1489,18 @@ Order information, needed to create an application.
 + `totalVat` (array[VatAmountOld], fixed-type, optional) - Total VAT amounts split by their VAT rates
 + `addresses` (array[Address], fixed-type, optional) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
 + `deliveryType` (enum, optional) - Delivery type, for `DELIVERY_CARRIER` type can be further specified by `deliveryCarrier` attribute.
-    + `DELIVERY_CARRIER` - If delivered by carrier - use `deliveryCarrier` for further specification.
-    + `PERSONAL_BRANCH` - Personal collection at branch
-    + `PERSONAL_PARTNER` - Personal collection at partner network
-    + `ONLINE` - Online delivery (e.g. for intangible assets)
+   + `DELIVERY_CARRIER` - If delivered by carrier - use `deliveryCarrier` for further specification.
+   + `PERSONAL_BRANCH` - Personal collection at branch
+   + `PERSONAL_PARTNER` - Personal collection at partner network
+   + `ONLINE` - Online delivery (e.g. for intangible assets)
 + `deliveryCarrier` (ObsoleteDeliveryCarrier, optional) - Delivery carrier, when applicable.
 + `reservationDate`: `2017-07-15T00:00:00+02:00` (string, optional)
 
-   Date and time until order is reserved.
+  Date and time until order is reserved.
 
-   Until 'reservationDate' HCO will try to notify partner with Application notification about approval or rejection.
+  Until 'reservationDate' HCO will try to notify partner with Application notification about approval or rejection.
 
-   After this date and time, e-shop does not guarantee items availability (if application processing is longer, it may endanger order fullfillment).
+  After this date and time, e-shop does not guarantee items availability (if application processing is longer, it may endanger order fullfillment).
 + `items` (array[ApplicationRequestOrderItem], fixed-type, optional) - Order items
 + `documents` (array[ObsoleteDocument], fixed-type, optional) - Attached documents (invoices etc.)
 
@@ -1544,23 +1510,23 @@ Delivery carrier
 
 ### Properties
 + One Of
-    + carrierId (enum, required)
-        + CZ_POST_HAND - Czech Post, Parcel Delivery to Hand
-        + CZ_POST_OFFICE - Czech Post, Parcel Delivery to Post Office
-        + CZ_POST_OTHER - Czech Post, other service
-        + PPL
-        + DPD
-        + GEIS
-        + IN_TIME
-        + TOP_TRANS
-        + GEBRUDER_WEISS
-        + LOCAL_COURIER
-        + TNT
-        + GLS
-        + HDS_COMFORT
-        + HDS_STANDARD
+   + carrierId (enum, required)
+       + CZ_POST_HAND - Czech Post, Parcel Delivery to Hand
+       + CZ_POST_OFFICE - Czech Post, Parcel Delivery to Post Office
+       + CZ_POST_OTHER - Czech Post, other service
+       + PPL
+       + DPD
+       + GEIS
+       + IN_TIME
+       + TOP_TRANS
+       + GEBRUDER_WEISS
+       + LOCAL_COURIER
+       + TNT
+       + GLS
+       + HDS_COMFORT
+       + HDS_STANDARD
 
-    + carrierCustom: `my custom carrier` (string, required) - For carriers not found in enumeration of customer ID, specify value as text
+   + carrierCustom: `my custom carrier` (string, required) - For carriers not found in enumeration of customer ID, specify value as text
 
 ## ObsoleteAdditionalDataRequest (object)
 Additional data about the customer.
@@ -1583,10 +1549,10 @@ Attached document (e.g. invoice, credit note etc.)
 
 ### Properties
 + `type` (enum, required) - Type of the document
-    + `INVOICE` - Invoice
-    + `PROFORMA_INVOICE` - Proforma invoice
-    + `CREDIT_NOTE` - Credit note
-    + `OTHER` - Other document type
+   + `INVOICE` - Invoice
+   + `PROFORMA_INVOICE` - Proforma invoice
+   + `CREDIT_NOTE` - Credit note
+   + `OTHER` - Other document type
 + `file` (File, required) - Attached file
 + `description`: `This is an invoice` (string, optional) - File description
 + `extraData` (ObsoleteDocumentExtraData, optional) - Additional data, if applicable
@@ -1599,52 +1565,52 @@ Attached document (e.g. invoice, credit note etc.)
 Precheck result.
 
 ### Properties
-+ `type`: `INSTALLMENT` (enum, required) - Precheck result type for Funding type.
-    + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
++ `type` (enum, required) - Precheck result type for Funding type.
+   + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
 + `recommendation`: `false` (boolean, required) - A recommendation of whether the order should be passed to the HCO.
     true = Application is going to be likely approved.
     false = Application is going to be likely rejected.
 + `probabilityOfApproval`: 0 (number, required) - Probability of approval.
-    0 = 0% to be approved
-    1 = 100% to be approved
-    Partner can create custom logic not to follow the recommendation (be more strict or benevolent).
+   0 = 0% to be approved
+   1 = 100% to be approved
+   Partner can create custom logic not to follow the recommendation (be more strict or benevolent).
 + `completeness`: 1 (number, optional) - Completness of the result. <0, 1> The lower is the value, the lower accuracy of the result.
-+ `code`: NOT_AVAILABLE (enum, required) - Result code.
-    + `OK`
-    + `UNKNOWN`
-    + `ADDITIONAL_DATA_SECURITY` - The customer will be asked to send additional data for security reasons.
-    + `ADDITIONAL_DATA_LIMIT` - The customer has insufficient limit and will be asked to send additional data to increase limit.
-    + `INSUFFICIENT_LIMIT` - The customer has insufficient limit and there is no way to increase it.
-    + `INSUFFICIENT_LIMIT_OPPORTUNITY` - The customer has insufficient limit and can increase it by paying previous not paid orders.
-    + `DETAILS_NOT_MATCHING` - We know the customer, but his personal details does not match with details in his HCO account. Customer will be asked for correcting not matching details.
-    + `REVOLVING_REQUIRED` - The customer cannot continue without revolving contract. See `revolvingCode` and `revolvingUsability` for additional information.
-    + `NOT_AVAILABLE` - Funding type is not available.
-+ `customerType`: `UNKNOWN` (enum, required) - Customer type.
-    + `UNKNOWN` - Customer is uknown for HCO.
-    + `FIRST_ORDER` - HCO knows the customer. Customer has no paid orders.
-    + `FULL` -  HCO knows the customer. Customer has at least one paid order.
-    + `BLOCKED` - HCO knows the customer. Customer is blocked.
-+ `customerDueDateCategory`:`CATEGORY_CLASSIC` (enum, required)
-    + `CATEGORY_CLASSIC` - customer with classic due date (14 days, with the exception of events (Christmas, etc.))
-    + `CATEGORY_EXTENDED` - customer with extended due date (20th day of next month, with the exception of events (Christmas, etc.))
++ `code` (enum, required) - Result code.
+   + `OK`
+   + `UNKNOWN`
+   + `ADDITIONAL_DATA_SECURITY` - The customer will be asked to send additional data for security reasons.
+   + `ADDITIONAL_DATA_LIMIT` - The customer has insufficient limit and will be asked to send additional data to increase limit.
+   + `INSUFFICIENT_LIMIT` - The customer has insufficient limit and there is no way to increase it.
+   + `INSUFFICIENT_LIMIT_OPPORTUNITY` - The customer has insufficient limit and can increase it by paying previous not paid orders.
+   + `DETAILS_NOT_MATCHING` - We know the customer, but his personal details does not match with details in his HCO account. Customer will be asked for correcting not matching details.
+   + `REVOLVING_REQUIRED` - The customer cannot continue without revolving contract. See `revolvingCode` and `revolvingUsability` for additional information.
+   + `NOT_AVAILABLE` - Funding type is not available.
++ `customerType` (enum, required) - Customer type.
+   + `UNKNOWN` - Customer is uknown for HCO.
+   + `FIRST_ORDER` - HCO knows the customer. Customer has no paid orders.
+   + `FULL` -  HCO knows the customer. Customer has at least one paid order.
+   + `BLOCKED` - HCO knows the customer. Customer is blocked.
++ `customerDueDateCategory` (enum, required)
+   + `CATEGORY_CLASSIC` - customer with classic due date (14 days, with the exception of events (Christmas, etc.))
+   + `CATEGORY_EXTENDED` - customer with extended due date (20th day of next month, with the exception of events (Christmas, etc.))
 + `customerOrdersCountLimit`: 0 (number, optional) - The maximum orders count that the customer can make. Not set if there is no limit.
 + `customerOrdersCountRemaining`: 0 (number, optional) - The remaining orders count that the customer can make. Not set if there is no limit.
 + `revolvingUsability`: false (boolean, optional) - Existing revolving account is usable for financing. For more detailed information see `revolvingCode`.
-+ `revolvingCode`: OK (enum, optional)
-    + `OK`
-    + `ADDITIONAL_DATA_SECURITY` - The customer will be asked to send additional data for security reasons (see additionalData).
-    + `ADDITIONAL_ACTION` - The customer will be asked for further actions (increase of the global limit, to sign credit terms... )
-    + `NEW_REVOLVING` - New revolving loan is available for customer.
-    + `NOT_AVAILABLE` - Revolving loan is not available for customer.
++ `revolvingCode` (enum, optional)
+   + `OK`
+   + `ADDITIONAL_DATA_SECURITY` - The customer will be asked to send additional data for security reasons (see additionalData).
+   + `ADDITIONAL_ACTION` - The customer will be asked for further actions (increase of the global limit, to sign credit terms... )
+   + `NEW_REVOLVING` - New revolving loan is available for customer.
+   + `NOT_AVAILABLE` - Revolving loan is not available for customer.
 + `message`: `V HCO peněžence nemáte dostatečný limit.` (string, optional) - Custom message for customer.
-    Examples:
-    “V HCO peněžence nemáte dostatečný limit.”
-    “Uveďte do objednávky jméno a příjmení, které používáte ve službě HCO.”
-    etc.
+   Examples:
+   “V HCO peněžence nemáte dostatečný limit.”
+   “Uveďte do objednávky jméno a příjmení, které používáte ve službě HCO.”
+   etc.
 + `additionalData` (array[string], fixed-type, optional) - List of additional data that customer has to send.
-    Possible values in array: `PERSONAL_ID`, `ID_CARD_NO`, `ID_CARD_EXPIRY_DATE`, `ID_CARD_SCAN`.
+   Possible values in array: `PERSONAL_ID`, `ID_CARD_NO`, `ID_CARD_EXPIRY_DATE`, `ID_CARD_SCAN`.
 + `additionalActions` (array[string], fixed-type, optional) - List of additional actions which will be required to finish application.
-    Possible values in array: `MOBILE_VERIFICATION`, `ACCOUNT_REGISTRATION`, `LIMIT_INCREASE`, `CREDIT_TERM_SUPPLEMENT`, `PAPERFORM_SUPPLEMENT`.
+   Possible values in array: `MOBILE_VERIFICATION`, `ACCOUNT_REGISTRATION`, `LIMIT_INCREASE`, `CREDIT_TERM_SUPPLEMENT`, `PAPERFORM_SUPPLEMENT`.
 
 ## ObsoletePrecheckResults (object)
 Precheck results.
@@ -1653,9 +1619,9 @@ Precheck results.
 + `id` (string, required) - Unique identificator of precheck. Send this identificator in ApplicationRequest for better approval rate.
 + `results` (array[ObsoletePrecheckResult], fixed-type, required) - Precheck results for each type of product.
 + `limits` (ObsoleteLimits, optional)
-    Customer limits.
-    Estimated in case we don!t know the customer.
-    Current customer's limits in case we know him and customer give us an approval for their usage.
+   Customer limits.
+   Estimated in case we don!t know the customer.
+   Current customer's limits in case we know him and customer give us an approval for their usage.
 
 ## ObsoleteLimits (object)
 Customer's limits
@@ -1692,6 +1658,7 @@ Financial amount with VAT rate.
 + `amount`: 14950 (number, required) - Amount in minor units (14950 represents 149,50) [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). MUST be 0 or greater.
 + `currency`: `CZK` (string, required) - Amount currency [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217). Only local currency is allowed (CZK in Czech Republic and EUR in Slovakia).
 + `vatRate`: 15 (number, required) - VAT rate as natural number (15 represents 15% rate)
+
 ## Error (object)
 + code: `BAD_REQUEST` (string, required) - Unique internal error code
 + message: `Bad request` (string, required) - Human readable error description (non-localized)
