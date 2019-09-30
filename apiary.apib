@@ -4,12 +4,13 @@ HOST: https://api.homecredit.cz
 # HC OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.21.06.83761c36d4e60fdd1e8ce2b80b73ee109b00644a`
+> Version of documentation: `1.21.30.05858a5f0d646f91a98d21ac5ebcf3b7dab842b8`
 
 | Version | Release | Release date | News                                                                                                                                                                |
 | ---     | ---     | ---          | ---                                                                                                                                                                 |
 | 1.21.06 | CS61    | 13.11.2019   | All VAT attributes (`Order.totalVat` and `Order.items[].totalVat`) as optional - They don't need to be filled in requests nor will be returned in responses anymore |
 | 1.21.06 | CS61    | 13.11.2019   | All `Order.addresses[]` attributes as optional - They don't need to be filled in requests nor will be returned in responses anymore                                 |
+| 1.21.30 | CS61    | 13.11.2019   | Notification request contains information about a down payment amount chosen by a client (`downPayment`)                                                            |
 
 
 In case of any question, please contact our integration department (integrace_eshop@homecredit.cz).
@@ -1444,6 +1445,7 @@ API information
    + `DELIVERED` - All order items was delivered to customer
    + `RETURNED` - All order items was returned to merchant
    + `CANCELLED` - Order was fully cancelled
++ `downPayment`: 300000 (AmountOld, required) - Current down payment set by a customer
 + `sentDate`: `2017-07-16T00:00:00+02:00` (string, required) – Date of sending notification (=actual date).
 + `checkSum`: `443E150D3406F6A8DC62C1DB224AFDD84FA9907071BB1AD9B2C7701031793662191501B26AADF3A31361341EA176C80B23D8A9A5E5B5219538289945FE0C20A7` (string, required) – Hashed message
 + `sequenceNumber`: 1 (number, required) - Sequence number of notification for corresponding application. Starts at value of 1.
