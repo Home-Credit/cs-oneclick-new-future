@@ -304,8 +304,8 @@ If the request was successfully processed, you receive HTTP status code 201 and 
 
 If the request was **recognized as duplication**
 - and previously created `Application` is canceled (`Application.state = CANCELLED` and `Application.stateReason = CANCELLED_NOT_PAID`), new `Application` is created, you receive HTTP status code 201 and `Application` object with information specified above (at least) in the response
-- and previously created `Application` is still being processed (`Application.state = PROCESSING`), no `Application` is created, you receive HTTP status code 200 and the `Application` object created during the first related successful resource call.
-- and previously created `Application` has other combination of an `Application.state` and `Application.stateReason`, you receive HTTP status code 422 with error code `DUPLICATE_ORDER_NUMBER`.
+- and previously created `Application` is still new (without any recorded action by a client), no `Application` is created, you receive HTTP status code 200 and the `Application` object created during the first related successful resource call.
+- and previously created `Application` is neither canceled nor new anymore (with some recorded action by a client), you receive HTTP status code 422 with error code `DUPLICATE_ORDER_NUMBER`.
 
 In case of an error, you receive one of the following results:
 | Status code | Code                   | Explanation                                                                     |
