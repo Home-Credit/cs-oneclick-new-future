@@ -8,10 +8,7 @@ API documentation for Home Credit One-Click API (next release preview).
 
 | Version | Release | Release date | News                                                                                                                                                                |
 | ---     | ---     | ---          | ---                                                                                                                                                                 |
-| 1.21.06 | CS62    | 8.1.2020     | All VAT attributes (`Order.totalVat` and `Order.items[].totalVat`) as optional - They don't need to be filled in requests nor will be returned in responses anymore |
-| 1.21.06 | CS62    | 8.1.2020     | All `Order.addresses[]` attributes as optional - They don't need to be filled in requests nor will be returned in responses anymore                                 |
-| 1.23.14 | CS63    | 28.1.2020    | Cancel application returns HTTP `202 Accepted` in case application has been already paid (`Application.stateReason = READY_PAID`)                                   |
-
+| -       | -       | -            |  |
 
 In case of any question, please contact our integration department (integrace_eshop@homecredit.cz).
 
@@ -1705,7 +1702,7 @@ Financial amount with VAT rate.
 ## File (object)
 + `filename`: `iphone6s.jpg` (string, required) - File name.
 + One Of
-    + `url`: `https://i.cdn.nrholding.net/32523771/2000/2000` (string, required) - File URL.
+    + `url`: `https://i.cdn.nrholding.net/32523771/2000/2000/iphone6s.jpg` (string, required) - File URL (full).
     + `content`: `RmlsZSBjb250ZW50cy4gwq9cXyjjg4QpXy/Crw==` (string, required) - File content (Base64 encoded, maximum size of encoded string is 500kB)
 
 
