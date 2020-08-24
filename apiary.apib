@@ -4,7 +4,7 @@ HOST: https://api.homecredit.cz
 # HC OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.23.14.ae4527ee1dc790dcf009c21a58c32a4ece08e76d`
+> Version of documentation: `1.25.1`
 
 | Version | Release | Release date | News                                                                                                                                                                |
 | ---     | ---     | ---          | ---                                                                                                                                                                 |
@@ -55,6 +55,8 @@ It is necessary to fill in all attributes marked as required in the request but 
 - attributes in request/response object are optional, unless stated otherwise (`required` flag under attribute name)
 - required attribute in optional object means, that if optional object is specified, it must contain required attribute.
 - all values in request/response attributes are just examples, except for enum values - these are the only possible values for given attribute.
+- documentation adheres to [semantic versioning](https://semver.org/spec/v2.0.0.html), which makes a distinction between *major*, *minor*, and *patch* versions.
+
 
 ## Request restrictions
 Please, keep in mind following restrictions regarding requests:
@@ -83,9 +85,9 @@ When you reach API calls limit (you call the API more times than is your quota),
 - `X-Rate-Limit-Reset` - The number of seconds left in the current period
 
 ## Versioning
-We use API version in URL (e.g. `https://api.homecredit.vn/customer/v1/my/profile`). Minor changes (see below) that don't break backwards compatibility do NOT increase API version, e.g. they MAY happen without prior notice and your application should be ready to handle them.
+We use API version in URL (e.g. `https://api.homecredit.cz/financing/v1/applications`). *Minor* changes and *patches* (see below) that don't break backwards compatibility do NOT increase API version, e.g. they MAY happen without prior notice and your application should be ready to handle them.
 
-Minor changes include:
+*Minor* changes include:
 - adding new resource
 - adding new optional header/URL parameter or optional body attribute to request
 - adding new attribute to response body
