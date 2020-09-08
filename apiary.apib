@@ -4,7 +4,7 @@ HOST: https://api.homecredit.cz
 # HC OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.25.1`
+> Version of documentation: `1.25.2`
 
 | Version | Release | Release date | News                                                                                                                                                                |
 | ---     | ---     | ---          | ---                                                                                                                                                                 |
@@ -170,7 +170,7 @@ There are 3 levels of error severity:
   - time is represented as `Thh:mm:ss`. Timezone is added when necessary. Time with arbitrary number of digits respresenting miliseconds is also accepted (when [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) format criteria is met) but the time without miliseconds is always returned.
   - day of week is represented as number 1..7, with 1 being Monday
   - week no. 1 is the week with the year's first Thursday in it
-- **phone numbers** uses international format starting with '+' and including country code (example of valid number: `+420739111222`)
+- **phone numbers** uses international mobile phone number format starting with '+' and including country code (example of valid number: `+420739111222`)
 - **numbers format** number format is defined by [JSON standard](http://www.json.org), e.g. decimals are separated by `.`
 - **money format** uses [ISO 4217](https://en.wikipedia.org/wiki/ISO_4217) formatting (in minor units, e.g.: 12590 in minor units represents 125,90 CZK/EUR)
 
@@ -268,7 +268,7 @@ Use `/financing/v1/applications` resource with properly filled request that cont
 - Customer information
   - Name (first name and last name - if possible, otherwise full name)
   - E-mail
-  - Phone number
+  - Mobile phone number
   - Addresses (array, at least one item is required - type CONTACT)
     - City
     - Street
@@ -1178,7 +1178,7 @@ Customer data
 + `lastName`: `Newborn` (string, optional) - Customer last (family) name. Must be paired with `firstName`. Required if `fullName` is empty. String values longer than 100 characters will be shortened to 100 characters.
 + `fullName`: `Ing. John Newborn, Csc.` (string, optional) - Customer full name, including academical degrees and salutation. Required only if `firstName` and `lastName` are empty. Attribute `fullName` is parsed (and eventually shortened) into `firstName` and `lastName`; `fullName` is never returned in response.
 + `email`: `john.newborn@country.com` (string, required) - E-mail address of customer. Must be valid email according to [RFC 2822](https://tools.ietf.org/html/rfc2822).
-+ `phone`: `+420777123456` (string, required) - Phone number with country code (including leading `+`)
++ `phone`: `+420777123456` (string, required) - Mobile phone number with country code (including leading `+`)
 + `addresses` (array[Address], fixed-type, optional) - Addresses. Only `PERMANENT` and `CONTACT` types are allowed.
 + `tin`: `12333321` (string, optional) - Tax identification number (ICO). String values longer than 10 characters will be shortened to 10 characters.
 
@@ -1731,7 +1731,7 @@ Financial amount with VAT rate.
 + bankCode: `3030` (string, required) - For domestic accounts, bank code in national format
 
 ## PhoneNumber (object)
-+ number: `+420123456789` (string, required) - Phone number (including country code)
++ number: `+420123456789` (string, required) - Mobile phone number (including country code with leading `+`)
 
 ## Email (object)
 + address: `darth.vader@empire.sw` (string, required) - Email address
