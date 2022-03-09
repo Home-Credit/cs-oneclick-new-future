@@ -4,11 +4,26 @@ HOST: https://api.homecredit.cz
 # HC OneClick API - Installments - FUTURE
 API documentation for Home Credit One-Click API (next release preview).
 
-> Version of documentation: `1.26.1`
+> Version of documentation: `1.27.1`
 
 | Version | Release | Release date | News                                                                                                                                                                |
 | ---     | ---     | ---          | ---                                                                                                                                                                 |
-| 1.26.1  | CS85    | 6.10.2021    | New `flags` attribute in [calculations resources](#reference/installments-calculator-resources/installment-programs-offers) marking products with delayed first installment.|
+| 1.27.1  | CS90    | 16.3.2022    | Validations in CreateApplication have been made more flexible: some attributes in CreateApplication Request were changed from required to optional. Full list of affected attributes follows under the table.|
+
+>List of attributes switching from required to optional:
+>- request.customer
+>- request.customer.firstName
+>- request.customer.lastName
+>- request.customer.fullName
+>- request.customer.email
+>- request.customer.phone
+>- request.customer.addresses
+>- request.customer.addresses.city
+>- request.customer.addresses.streetAddress
+>- request.customer.addresses.streetNumber
+>- request.customer.addresses.zip
+>- request.customer.addresses.addressType
+>- request.merchantUrls.notificationEndpoint
 
 In case of any question, please contact our integration department (integrace_eshop@homecredit.cz).
 
@@ -321,7 +336,7 @@ Create new *application* of particular financing type
 + Request Example_VALID_REQUEST (application/json;charset=UTF-8)
     + Attributes (ApplicationRequest)
       + `customer` (Customer, required) - Customer information
-          + `addresses` (array[Address], fixed-type, required) - Addresses. Only `PERMANENT` and `CONTACT` types are allowed.
+          + `addresses` (array[Address], fixed-type, optional) - Addresses. Only `PERMANENT` and `CONTACT` types are allowed.
               + Sample
                   + (object)
                       + `name`: `John Newborn`
@@ -341,7 +356,7 @@ Create new *application* of particular financing type
 + Request Example_REPEATED_VALID_REQUEST (application/json;charset=UTF-8)
     + Attributes (ApplicationRequest)
       + `customer` (Customer, required) - Customer information
-          + `addresses` (array[Address], fixed-type, required) - Addresses. Only `PERMANENT` and `CONTACT` types are allowed.
+          + `addresses` (array[Address], fixed-type, optional) - Addresses. Only `PERMANENT` and `CONTACT` types are allowed.
               + Sample
                   + (object)
                       + `name`: `John Newborn`
@@ -1123,7 +1138,7 @@ Use this resource for changing Application state (`stateReason`) to desired one.
 Financing application request
 
 ### Properties
-+ `customer` (Customer, required) - Customer information
++ `customer` (Customer, optional) - Customer information
 + `order` (OrderBase, required) - Order information
 + `type` (enum, required) - Financing type
     + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
@@ -1165,7 +1180,7 @@ Financing application
 + `customer` (CustomerBase, optional) - Customer data
 + `order` (Order, required) - Order data
 + `type` (enum, required) - Financing type
-   + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
+    + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
 + `settingsInstallment` (SettingsInstallment, required) - Settings for INSTALLMENT Application type.
 + `gatewayRedirectUrl`: `https://www.ourloan.cz/application/11200a0ee1` (string, optional) - Gateway redirect URL. Redirect user to this URL if state is `PROCESSING` and stateReason is `PROCESSING_REDIRECT_NEEDED`.
 
@@ -1174,11 +1189,11 @@ Financing application
 Customer data
 
 ### Properties
-+ `firstName`: `John` (string, optional) -  Customer first (given) name. Must be paired with `lastName`. Required if `fullName` is empty. String values longer than 100 characters will be shortened to 100 characters.
-+ `lastName`: `Newborn` (string, optional) - Customer last (family) name. Must be paired with `firstName`. Required if `fullName` is empty. String values longer than 100 characters will be shortened to 100 characters.
-+ `fullName`: `Ing. John Newborn, Csc.` (string, optional) - Customer full name, including academical degrees and salutation. Required only if `firstName` and `lastName` are empty. Attribute `fullName` is parsed (and eventually shortened) into `firstName` and `lastName`; `fullName` is never returned in response.
-+ `email`: `john.newborn@country.com` (string, required) - E-mail address of customer. Must be valid email according to [RFC 2822](https://tools.ietf.org/html/rfc2822).
-+ `phone`: `+420777123456` (string, required) - Mobile phone number with country code (including leading `+`)
++ `firstName`: `John` (string, optional) -  Customer first (given) name. Must be paired with `lastName`. SHOULD be provided if known. String values longer than 100 characters will be shortened to 100 characters.
++ `lastName`: `Newborn` (string, optional) - Customer last (family) name. Must be paired with `firstName`. SHOULD be provided if known. String values longer than 100 characters will be shortened to 100 characters.
++ `fullName`: `Ing. John Newborn, Csc.` (string, optional) - Customer full name, including academical degrees and salutation. Attribute `fullName` is parsed (and eventually shortened) into `firstName` and `lastName`; `fullName` is never returned in response.
++ `email`: `john.newborn@country.com` (string, optional) - E-mail address of customer. Must be valid email according to [RFC 2822](https://tools.ietf.org/html/rfc2822).
++ `phone`: `+420777123456` (string, optional) - Mobile phone number with country code (including leading `+`)
 + `addresses` (array[Address], fixed-type, optional) - Addresses. Only `PERMANENT` and `CONTACT` types are allowed.
 + `tin`: `12333321` (string, optional) - Tax identification number (ICO). String values longer than 10 characters will be shortened to 10 characters.
 
@@ -1246,7 +1261,7 @@ Order information, needed to create an application.
     + `PERSONAL_PARTNER` - Personal collection at partner network
     + `ONLINE` - Online delivery (e.g. for intangible assets)
 + `reservationDate`: `2017-07-15T00:00:00+02:00` (string, optional) - Date and time until order is reserved. After this date and time, e-shop does not guarantee items availability (e.g. if application processing is longer, it may endanger order fullfillment).
-+ `items` (array[ApplicationRequestOrderItem], fixed-type, required) - Order items
++ `items` (array[OrderItem], fixed-type, required) - Order items
 
 
 
@@ -1255,12 +1270,11 @@ Order information.
 
 ### Properties
 + `state` (enum, required) - Order state.
-   + `PROCESSING` - Order is being processed by merchant
-   + `SENT` - All order items was sent to customer
-   + `DELIVERED` - All order items was delivered to customer
-   + `RETURNED` - All order items was returned to merchant
-   + `CANCELLED` - Order was fully cancelled
-+ `items` (array[OrderItem], fixed-type, required) - Order items
+    + `PROCESSING` - Order is being processed by merchant
+    + `SENT` - All order items was sent to customer
+    + `DELIVERED` - All order items was delivered to customer
+    + `RETURNED` - All order items was returned to merchant
+    + `CANCELLED` - Order was fully cancelled
 
 ## OrderExtended (Order)
 Additional information about Application.
@@ -1279,7 +1293,7 @@ Order item base information, needed to identify order item
 + `quantity`: 1 (number, optional) - Item quantity. If empty, considered as 1.
 
 
-## ApplicationRequestOrderItem (OrderItemBase)
+## OrderItem (OrderItemBase)
 Order item information, needed to create an application.
 
 ### Properties
@@ -1300,18 +1314,6 @@ Order item information, needed to create an application.
 + `totalVat` (VatAmountOld, optional) - Total VAT amount for all pieces
 + `image` (File, optional) - Item image
 
-
-## OrderItem (ApplicationRequestOrderItem)
-Order item information.
-
-### Properties
-+ `state` (enum, required) - Order state.
-   + `PROCESSING` - Oorder item delivery is being processed by merchant
-   + `SENT` - Items wa sent to customer
-   + `DELIVERED` - Order item was delivered to customer
-   + `RETURNED` - Order item was returned to merchant
-   + `CANCELLED` - Order item was cancelled
-
 ## SettingsInstallment (object)
 + `preferredMonths`: 6 (number, optional) - Preferred number of installments (in months)
 + `preferredInstallment` (AmountOld, optional) - Preferred repayment amount
@@ -1327,11 +1329,11 @@ Address
 
 ### Properties
 + `name`: `John Newborn` (string, optional) - Name on addres. Maximum 90 characters.
-+ `city`: `Prague` (string, required) - City. String values longer than 100 characters will be shortened to 100 characters.
-+ `streetAddress`: `Letenská` (string, required) - Street/city part. String values longer than 100 characters will be shortened to 100 characters.
-+ `streetNumber`: `22` (string, required) - Street number. String values longer than 50 characters will be shortened to 50 characters.
-+ `zip`: `140 00` (string, required) - Postal code. String values longer than 10 characters will be shortened to 10 characters.
-+ `addressType` (enum, required) - Type of the address. Only some of the types are allowed in each context.
++ `city`: `Prague` (string, optional) - City. String values longer than 100 characters will be shortened to 100 characters.
++ `streetAddress`: `Letenská` (string, optional) - Street/city part. String values longer than 100 characters will be shortened to 100 characters.
++ `streetNumber`: `22` (string, optional) - Street number. String values longer than 50 characters will be shortened to 50 characters.
++ `zip`: `140 00` (string, optional) - Postal code. String values longer than 10 characters will be shortened to 10 characters.
++ `addressType` (enum, optional) - Type of the address. Only some of the types are allowed in each context.
     + `PERMANENT` - Permanent residential address
     + `CONTACT` - Contact address
     + `DELIVERY` - Delivery address
@@ -1344,7 +1346,7 @@ Collection of URLs used for redirection of a customer back to a partner website 
 ### Properties
 + `approvedRedirect`: `https://www.youreshop.cz` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application approval. Do not implement any business logic on accessing this URL by customer. Implement business logic to READY notification via `notificationEndpoint`. Must be valid URL according to [RFC 3986](https://tools.ietf.org/html/rfc3986). Maximum 1000 characters.
 + `rejectedRedirect`: `https://www.youreshop.cz/kosik` (string, required) - URL of the partner used for redirection of the customer back to partner website (from HCO gateway) after application rejection.  Do not implement any business logic on accessing this URL by customer. Implement business logic to REJECTED notification via `notificationEndpoint`. Must be valid URL according to [RFC 3986](https://tools.ietf.org/html/rfc3986). Maximum 1000 characters.
-+ `notificationEndpoint`: `https://www.youreshop.cz/order/AA234` (string, required) - URL of the partner used as a notification endpoint for obtaining important updates about application (approval, rejection, storno, etc.). Must be valid URL according to [RFC 3986](https://tools.ietf.org/html/rfc3986). Maximum 1000 characters.
++ `notificationEndpoint`: `https://www.youreshop.cz/order/AA234` (string, optional) - URL of the partner used as a notification endpoint for providing important updates about application (approval, rejection, storno, etc.). Must be valid URL according to [RFC 3986](https://tools.ietf.org/html/rfc3986). Maximum 1000 characters.
 
 
 ## PrecheckRequest (object)
@@ -1374,7 +1376,7 @@ Installment programs
 
 ### Properties
 + `productCode`: `COCONL06` (string, required) - Installment program product code
-+ `type` (enum, optional) - DEPRECATED. Do not use this attribute, use attribute `flags` instead. Attribute `type` remains in API for backward compatibility
++ `type` (enum, optional) - DEPRECATED. Do not use this attribute, use attribute `flags` instead. Attribute `type` remains in the API for backward compatibility
     + `MINIMAL` - Lowest installment
     + `FAVOURITE` - Recommended (favourite) installment program
     + `OTHER` - Other
@@ -1520,7 +1522,7 @@ Order information, needed to create an application.
    Until 'reservationDate' HCO will try to notify partner with Application notification about approval or rejection.
 
    After this date and time, e-shop does not guarantee items availability (if application processing is longer, it may endanger order fullfillment).
-+ `items` (array[ApplicationRequestOrderItem], fixed-type, optional) - Order items
++ `items` (array[OrderItem], fixed-type, optional) - Order items
 + `documents` (array[ObsoleteDocument], fixed-type, optional) - Attached documents (invoices etc.)
 
 
@@ -1638,16 +1640,17 @@ Precheck results.
 + `id` (string, required) - Unique identificator of precheck. Send this identificator in ApplicationRequest for better approval rate.
 + `results` (array[ObsoletePrecheckResult], fixed-type, required) - Precheck results for each type of product.
 + `limits` (ObsoleteLimits, optional)
-    Estimated in case we don!t know the customer.
-    Current customer's limits in case we know him and customer give us an approval for their usage.
+   Customer limits.
+   Estimated in case we don't know the customer.
+   Current customer's limits in case we know him and customer give us an approval for their usage.
 
 ## ObsoleteLimits (object)
 Customer's limits
 
 ### Properties
-
 + `availableLimit` (AmountOld, required) - Customer's available limit
 + `totalLimit` (AmountOld, required) - Customer's global limit
+
 ## ErrorNotFound (Error)
 + code: `APPLICATION_NOT_FOUND` (string, required) - Unique internal error code
 + message: `Application 'NONEXISTING_APPLICATION' not found` (string, required) - Human readable error description (non-localized)
