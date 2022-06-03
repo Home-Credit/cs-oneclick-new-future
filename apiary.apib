@@ -265,7 +265,7 @@ Elementary flow starts when customer wants to use one of Home Credit's payment m
 
 
 Use `/financing/v1/applications` resource with properly filled request that contains at least following data
-- Customer information it is not necessary to send, however, sending them is highly recommended, it will simplify the application process for the client
+- Customer information are not necessary to send, however, sending them is highly recommended - it will simplify the application process for the client
   - Name (first name and last name or full name)
   - E-mail
   - Mobile phone number
@@ -290,7 +290,7 @@ Use `/financing/v1/applications` resource with properly filled request that cont
 - Additional information necessary for the continuation and completion of the process
   - Your URL where the customer should be redirected after application approval
   - Your URL where the customer should be redirected after application rejection
-  - URL of your notification endpoint you want us to send you notifications about particular application updates (in case the partner is using notifier)
+  - URL of your notification endpoint you want us to send notifications about particular application updates to (in case the partner is using notifier)
 > \* = Must be filled properly in case customer has already used installment calculator embedded on your website and selected preferred installment program. See the [Installments calculator resources section](#reference/installments-calculator-resources) for more details about possibility to embed installment calculator on your website. Leave empty otherwise.
 
 If the request was successfully processed, you receive HTTP status code 201 and `Application` object with at least following information in the response:
@@ -1298,6 +1298,7 @@ Order item information, needed to create an application.
 + `totalPrice` (AmountOld, required) - Total price for all pieces, VAT inclusive
 + `totalVat` (VatAmountOld, optional) - Total VAT amount for all pieces
 + `image` (File, optional) - Item image
+
 
 ## SettingsInstallment (object)
 + `preferredMonths`: 6 (number, optional) - Preferred number of installments (in months)
