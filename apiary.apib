@@ -8,7 +8,7 @@ API documentation for Home Credit One-Click API (next release preview).
 
 | Version | Release | Release date | News |
 | ---     | ---     | ---          | ---  |
-| 1.28.1  | CS110   | 16.10.2023   | New precheck resource (see)|                   
+| 1.28.1  | CS110   | 16.10.2023   | New precheck resource ([see](/#reference/scoring-resources/precheck/run-precheck))|                   
 
 In case of any question, please contact our integration department (integrace_eshop@homecredit.cz).
 
@@ -777,7 +777,7 @@ Possible error codes explanation:
 ## MultiPrecheck [/financing/v1/scorings/precheck/extended/batches]
 Multi precheck is basic Precheck run on many clients. Typically used outside businness hours. Operation is asynchronous, partner gets only unique identifier of batch and the result is available in Multi precheck result resource (see [this section](#reference/Multi precheck result))
 
-Resource has to be called with valid access token (see the [Security section](#reference/security)) from your server. If you plan to integrate it in a client flow, you should implement REST endpoint bound to your shopping basket session that will be used as a proxy to call HC API - **NEVER put access token directly to client side**.
+Resource has to be called with valid access token (see the [Security section](/#reference/scoring-resources/multi-precheck-result)) from your server. If you plan to integrate it in a client flow, you should implement REST endpoint bound to your shopping basket session that will be used as a proxy to call HC API - **NEVER put access token directly to client side**.
 
 Possible error codes explanation:
 | Status code | Code                | Explanation                                                                     |
