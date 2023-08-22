@@ -7,7 +7,7 @@ API documentation for Home Credit One-Click API (next release preview).
 > Version of documentation: `1.27.1`
 
 | Version | Release | Release date | News                                                                                                                                                                |
-| ---     | ---     | ---          | ---                                                                                                                                                                 |
+| ---     | ---     | ---          | ---                                                                                                   | 1.28.1  | CS110    | 16.10.2023    | New precheck resource (see)|                                                              |
 | -  | -    | -   | - |
 
 In case of any question, please contact our integration department (integrace_eshop@homecredit.cz).
@@ -265,7 +265,7 @@ Elementary flow starts when customer wants to use one of Home Credit's payment m
 
 
 Use `/financing/v1/applications` resource with properly filled request that contains at least following data
-- Customer information are not necessary to send, however, sending them is highly recommended - it will simplify the application process for the client
+- Customer information is not necessary to send, however, sending them is highly recommended, it will simplify the application process for the customer:
   - Name (first name and last name or full name)
   - E-mail
   - Mobile phone number
@@ -745,9 +745,9 @@ Search for *order* using specified parameters.
 # Group Scoring resources
 Services that allow partner e-shops to find out a probability of *application's* approval.
 
-
-## Precheck [/financing/v1/scorings/precheck]
-Simple operation for customer preliminary scoring. Returns a suitability of particular customer for financing services. It is best suitable for identifying clients who will probably be rejected. Take into account that positive recommendation can not guarantee customer's approval (it is not the main scoring) as the result is based on only a few elementary pieces of information about the customer.
+## Precheck [/financing/v1/scorings/precheck/extended]
+Simple operation for customer preliminary scoring.
+Returns a possible credit amount customer the customer can obtain. It is best suitable for identifying clients who will probably be rejected. Take into account that positive recommendation can not guarantee customer's approval as the result is based on only a few elementary pieces of information about the customer.
 
 Resource has to be called with valid access token (see the [Security section](#reference/security)) from your server. If you plan to integrate it in a client flow, you should implement REST endpoint bound to your shopping basket session that will be used as a proxy to call HC API - **NEVER put access token directly to client side**.
 
@@ -760,7 +760,7 @@ Possible error codes explanation:
 ### Run precheck [POST]
 
 + Request (application/json;charset=UTF-8)
-    + Attributes (PrecheckRequest)
+    + Attributes (ScoringData)
 
 
 + Response 200(application/json;charset=UTF-8)
@@ -774,22 +774,94 @@ Possible error codes explanation:
     + Attributes (Errors)
 
 
-## !!OBSOLETE!! Precheck [/financing/v1/precheck]
-> **ATTENTION:** This resource is **!!OBSOLETE!!**, use [Precheck operation](#reference/scoring-resources/precheck) instead!
+## MultiPrecheck [/financing/v1/scorings/precheck/extended/batches]
+Multi precheck is basic Precheck run on many clients. Typically used outside businness hours. Operation is asynchronous, partner gets only unique identifier of batch and the result is available in Multi precheck result resource (see [this section](#reference/Multi precheck result))
 
-Returns probability of *application's* approval and limits of particular customer, if known to HC
-
-It has to be called with valid access token (see the [Security section](#reference/security)) from your server. If you plan to integrate it in client flow, you should implement REST endpoint bound to your shopping basket session, that will be used as a proxy to call HC API - **NEVER put access token directly to client side**.
+Resource has to be called with valid access token (see the [Security section](#reference/security)) from your server. If you plan to integrate it in a client flow, you should implement REST endpoint bound to your shopping basket session that will be used as a proxy to call HC API - **NEVER put access token directly to client side**.
 
 Possible error codes explanation:
 | Status code | Code                | Explanation                                                                     |
 | ---         | ---                 | ---                                                                             |
 | 400         | INVALID_REQUEST     | Request was not well formatted (malformed request syntax, size too large, etc.) |
-| 422         | PERSONAL_ID_INVALID | PersonalId is not valid                                                         |
 | 500         | FAILURE             | Internal failure                                                                |
 
-### [OBSOLETE] Precheck [POST]
-Returns probability of *application's* approval and limits of particular customer, if known to HC
+### Run multiPrecheck [POST]
+
++ Request (application/json;charset=UTF-8)
+    + Attributes (MultiPrecheckRequest)
+
+
++ Response 200(application/json;charset=UTF-8)
+
+    + Attributes (MultiPrecheckResponse)
+
+
++ Response 400(application/json;charset=UTF-8)
+        Error in processing request
+
+    + Attributes (Errors)
+
+
+## Multi precheck result [/financing/v1/scorings/precheck/extended/batches/{batchId}]
+Getting result of finished multi precheck.
+
+In other cases, you receive one of the following errors:
+| Status code | Code                  | Message                                                                          |
+| ---         | ---                   | ---                                                                              |
+| 400         | INVALID_REQUEST       | Request was not well formatted (malformed request syntax, size too large, etc.)  |
+| 404         | APPLICATION_NOT_FOUND | The requested resource could not be found                                        |
+| 422         | NOT_SUPPORTED         | Resource is not supported for given financing type                               |
+| 422         | UNPROCESSABLE         | The request was well-formed but was unable to be followed due to semantic errors |
+| 500         | INTERNAL_SERVER_ERROR | Unexpected condition was encountered and no more specific message is suitable    |
+
++ Parameters
+    + batchId (string, required, `11200a0ee1`)
+
+
+### Get multi precheck result [GET]
++ Response 200(application/json;charset=UTF-8)
+
+        Actual application data
+
+    + Attributes (MultiPrecheckResult)
+
+
+## Multi precheck result notification [/{multiPrecheckRequest.notificationEndpoint}]
+Notification resource which needs to be provided by partner and the uri is specified during initialization of multi precheck. Notification does not contain result of customers' precheck, only information, that results are now available.
+
+
+### Result notification [POST]
+Notify partner about finished multiprecheck.
+
++ Request (application/json;charset=UTF-8)
+    + Attributes (BatchNotification)
+
+
++ Response 200 (application/json;charset=UTF-8)
+
+         {
+            "status": "OK"
+         }
+
++ Response 400 (application/json;charset=UTF-8)
+
+        Can not process changes
+
+
+## !!OBSOLETE!! Precheck [/financing/v1/scorings/precheck]
+> **ATTENTION:** This resource is **!!OBSOLETE!!**. Druhá verze prechecku, již nenabízíme novým partnerům. Používá Mall a ještě jeden partner
+
+Simple operation for customer preliminary scoring. Returns a suitability of particular customer for financing services. It is best suitable for identifying clients who will probably be rejected. Take into account that positive recommendation can not guarantee customer's approval (it is not the main scoring) as the result is based on only a few elementary pieces of information about the customer.
+
+Resource has to be called with valid access token (see the [Security section](#reference/security)) from your server. If you plan to integrate it in a client flow, you should implement REST endpoint bound to your shopping basket session that will be used as a proxy to call HC API - **NEVER put access token directly to client side**.
+
+Possible error codes explanation:
+| Status code | Code                | Explanation                                                                     |
+| ---         | ---                 | ---                                                                             |
+| 400         | INVALID_REQUEST     | Request was not well formatted (malformed request syntax, size too large, etc.) |
+| 500         | FAILURE             | Internal failure                                                                |
+
+### [OBSOLETE] Run precheck [POST]
 
 + Request (application/json;charset=UTF-8)
     + Attributes (ObsoletePrecheckRequest)
@@ -797,9 +869,7 @@ Returns probability of *application's* approval and limits of particular custome
 
 + Response 200(application/json;charset=UTF-8)
 
-        Probability of approval
-
-    + Attributes (ObsoletePrecheckResults)
+    + Attributes (ObsoletePrecheckResult)
 
 
 + Response 400(application/json;charset=UTF-8)
@@ -1248,8 +1318,6 @@ Order information, needed to create an application.
 + `reservationDate`: `2017-07-15T00:00:00+02:00` (string, optional) - Date and time until order is reserved. After this date and time, e-shop does not guarantee items availability (e.g. if application processing is longer, it may endanger order fullfillment).
 + `items` (array[OrderItem], fixed-type, required) - Order items
 
-
-
 ## Order (OrderBase)
 Order information.
 
@@ -1335,22 +1403,46 @@ Collection of URLs used for redirection of a customer back to a partner website 
 + `notificationEndpoint`: `https://www.youreshop.cz/order/AA234` (string, optional) - URL of the partner used as a notification endpoint for providing important updates about application (approval, rejection, storno, etc.). Must be valid URL according to [RFC 3986](https://tools.ietf.org/html/rfc3986). Maximum 1000 characters.
 
 
-## PrecheckRequest (object)
-Precheck data.
+## ScoringData (object)
++ `customer` (PrecheckCustomer, required) - Customer data
+
+## PrecheckCustomer (object)
+Customer data
 
 ### Properties
-+ `customer` (Customer, required) - Customer data
-
++ `firstName`: `John` (string, required) -  Customer first (given) name. String values longer than 100 characters will be shortened to 100 characters.
++ `lastName`: `Newborn` (string, required) - Customer last (family) name. String values longer than 100 characters will be shortened to 100 characters.
++ `email`: `john.newborn@country.com` (string, optional) - E-mail address of customer. At least one contact (`email` or `phone`) MUST be provided. MUST be valid email according to [RFC 2822](https://tools.ietf.org/html/rfc2822).
++ `phone`: `+420777123456` (string, optional) - Mobile phone number with country code (including leading `+`). At least one contact (`email` or `phone`) MUST be provided.
++ `externalId` (string, required) - Unique customer's identifier in partner's system. Typically used for linking request and response together.
 
 ## PrecheckResult (object)
 Precheck result.
 
 ### Properties
-+ `id`: `1234` (string, required) - Unique identificator of Precheck. Send this identificator in ApplicationRequest for better approval rate.
-+ `recommendation`:`false`  (boolean, required) - A recommendation of whether the order should be passed to the HCO.
-    true = Application is likely going to be approved.
-    false = Application is likely going to be rejected.
-+ `message`:`V HCO peněžence nemáte dostatečný limit.` (string, optional) - Custom message for customer.
++ `id`: `1234` (string, required) - Unique identificator of Precheck. Send this identificator in ApplicationRequest to improve approval rate.
++ `customer` (PrecheckCustomerResponse, required) - Customer data
++ `potentialCreditAmount` (AmountOld, required) - Probable credit amount customer will be able to borrow, estimated on the basis of provided data.
+
+## PrecheckCustomerResponse (object)
++ `externalId` (string, required) - Unique customer's identifier in partner's system. Typically used for linking request and response together.
+
+## MultiPrecheckRequest (object)
++ `scoringData` (array[ScoringData], fixed-type, required)
++ `notificationEndpoint`: `https://www.youreshop.cz/multiPrecheck/results` (string, required) -  URL of the partner used as a notification endpoint for providing information about result of multi precheck. Must be valid URL according to [RFC 3986](https://tools.ietf.org/html/rfc3986). Maximum 1000 characters.
+
+## MultiPrecheckResponse (object)
++ `id` (string, required) - Unique identifier of multi precheck's batch.
+
+## BatchNotification (object)
++ `id` (string, required) - Unique identifier of multi precheck's batch.
++ `resultCode` (enum, required) - Result of the precheck's batch.
+    + `SUCCESS` - Precheck ended for all clients
+    + `PARTIAL_SUCCESS` - Precheck ended, but for some customers it ended with failure
+    + `FAILURE` - Precheck ended with critical failure
+
+## MultiPrecheckResult (BatchNotification)
++ `data` (array[PrecheckResult], fixed-type, optional) - REQUIRED if precheck ended with `SUCCESS` or `PARTIAL_SUCCESS`
 
 
 ## InstallmentPrograms (object)
@@ -1362,7 +1454,7 @@ Installment programs
 
 ### Properties
 + `productCode`: `COCONL06` (string, required) - Installment program product code
-+ `type` (enum, optional) - DEPRECATED. Do not use this attribute, use attribute `flags` instead. Attribute `type` remains in the API for backward compatibility
++ `type` (enum, optional) - DEPRECATED. Do not use this attribute, use attribute `flags` instead. Attribute `type` remains in API for backward compatibility
     + `MINIMAL` - Lowest installment
     + `FAVOURITE` - Recommended (favourite) installment program
     + `OTHER` - Other
@@ -1471,171 +1563,17 @@ API information
 Precheck data (has similar structure as `Application`).
 
 ### Properties
-+ `customer` (ObsoletePrecheckRequestCustomer, optional) - Customer data
-+ `order` (ObsoletePrecheckRequestOrder, optional) - Order data
-+ `agreementPersonalDataProcessing`: `true` (boolean, optional) - Flag indicating already approved personal data processing
-+ `type` (enum, optional) - Financing type
-    + `INSTALLMENT` - Pay in monthly installments
-+ `settingsInstallment` - Settings for INSTALLMENT Application type.
-    + `preferredMonths`: 10 (number, optional) - Preferred number of installments (in months)
-    + `preferredInstallment` (AmountOld, optional) - Preferred repayment amount
-    + `preferredDownPayment` (AmountOld, optional) - Preferred downpayment amount (amount should be rounded to hundreds)
-    + `productCode`: `a122ax` (string, optional) - Product code, this indicates previous calculation result
-    + `productSetCode`: `bc11523` (string, optional) - Product set code, this will limit further calculations
-
-## ObsoletePrecheckRequestCustomer (Customer)
-+ `additionalData` (ObsoleteAdditionalDataRequest, optional) - Additional data about the customer
-
-## ObsoletePrecheckRequestOrder (object)
-Order information, needed to create an application.
-
-### Properties
-+ `number`: `AA234` (string, optional) - Order number (internal for e-shop)
-+ `variableSymbols`: `123456`, `1234567` (array[string], fixed-type, optional) - Variable symbols (internal for e-shop)
-+ `totalPrice` (AmountOld, optional) - Total order amount, including VAT
-+ `totalVat` (array[VatAmountOld], fixed-type, optional) - Total VAT amounts split by their VAT rates
-+ `addresses` (array[Address], fixed-type, optional) - Addresses. Only `BILLING` and `DELIVERY` types are allowed.
-+ `deliveryType` (enum, optional) - Delivery type, for `DELIVERY_CARRIER` type can be further specified by `deliveryCarrier` attribute.
-    + `DELIVERY_CARRIER` - If delivered by carrier - use `deliveryCarrier` for further specification.
-    + `PERSONAL_BRANCH` - Personal collection at branch
-    + `PERSONAL_PARTNER` - Personal collection at partner network
-    + `ONLINE` - Online delivery (e.g. for intangible assets)
-+ `deliveryCarrier` (ObsoleteDeliveryCarrier, optional) - Delivery carrier, when applicable.
-+ `reservationDate`: `2017-07-15T00:00:00+02:00` (string, optional)
-
-   Date and time until order is reserved.
-
-   Until 'reservationDate' HCO will try to notify partner with Application notification about approval or rejection.
-
-   After this date and time, e-shop does not guarantee items availability (if application processing is longer, it may endanger order fullfillment).
-+ `items` (array[OrderItem], fixed-type, optional) - Order items
-+ `documents` (array[ObsoleteDocument], fixed-type, optional) - Attached documents (invoices etc.)
-
-
-## ObsoleteDeliveryCarrier (object)
-Delivery carrier
-
-### Properties
-+ One Of
-    + carrierId (enum, required)
-        + CZ_POST_HAND - Czech Post, Parcel Delivery to Hand
-        + CZ_POST_OFFICE - Czech Post, Parcel Delivery to Post Office
-        + CZ_POST_OTHER - Czech Post, other service
-        + PPL
-        + DPD
-        + GEIS
-        + IN_TIME
-        + TOP_TRANS
-        + GEBRUDER_WEISS
-        + LOCAL_COURIER
-        + TNT
-        + GLS
-        + HDS_COMFORT
-        + HDS_STANDARD
-
-    + carrierCustom: `my custom carrier` (string, required) - For carriers not found in enumeration of customer ID, specify value as text
-
-## ObsoleteAdditionalDataRequest (object)
-Additional data about the customer.
-
-### Properties
-+ `personalId`: 7203201234 (string, optional) - Personal identification number (format XXXXXXYYYY or XXXXXX/YYYY)
-+ `idCard`: 123456789 (string, optional) - ID card number
-+ `idCardExpiryDate`: `2020-05-19` (string, optional) - ID card expiration date
-+ `idCardScan` (ObsoleteIdCardScan, optional) - ID card scan
-
-## ObsoleteIdCardScan (object)
-
-### Properties
-+ `front` (File, optional) - Front side
-+ `back` (File, optional) - Back side
-
-
-## ObsoleteDocument (object)
-Attached document (e.g. invoice, credit note etc.)
-
-### Properties
-+ `type` (enum, required) - Type of the document
-    + `INVOICE` - Invoice
-    + `PROFORMA_INVOICE` - Proforma invoice
-    + `CREDIT_NOTE` - Credit note
-    + `OTHER` - Other document type
-+ `file` (File, required) - Attached file
-+ `description`: `This is an invoice` (string, optional) - File description
-+ `extraData` (ObsoleteDocumentExtraData, optional) - Additional data, if applicable
-
-
-## ObsoleteDocumentExtraData (object)
-+ `variableSymbol`: `1234567890` (string, optional) - variable symbol (internal for e-shop)
++ `customer` (Customer, required) - Customer data
 
 ## ObsoletePrecheckResult (object)
 Precheck result.
 
 ### Properties
-+ `type` (enum, required) - Precheck result type for Funding type.
-    + `INSTALLMENT` - Pay in monthly installments ("nákup na splátky")
-+ `recommendation`: `false` (boolean, required) - A recommendation of whether the order should be passed to the HCO.
-    true = Application is going to be likely approved.
-    false = Application is going to be likely rejected.
-+ `probabilityOfApproval`: 0 (number, required) - Probability of approval.
-    0 = 0% to be approved
-    1 = 100% to be approved
-    Partner can create custom logic not to follow the recommendation (be more strict or benevolent).
-+ `completeness`: 1 (number, optional) - Completness of the result. <0, 1> The lower is the value, the lower accuracy of the result.
-+ `code` (enum, required) - Result code.
-    + `OK`
-    + `UNKNOWN`
-    + `ADDITIONAL_DATA_SECURITY` - The customer will be asked to send additional data for security reasons.
-    + `ADDITIONAL_DATA_LIMIT` - The customer has insufficient limit and will be asked to send additional data to increase limit.
-    + `INSUFFICIENT_LIMIT` - The customer has insufficient limit and there is no way to increase it.
-    + `INSUFFICIENT_LIMIT_OPPORTUNITY` - The customer has insufficient limit and can increase it by paying previous not paid orders.
-    + `DETAILS_NOT_MATCHING` - We know the customer, but his personal details does not match with details in his HCO account. Customer will be asked for correcting not matching details.
-    + `REVOLVING_REQUIRED` - The customer cannot continue without revolving contract. See `revolvingCode` and `revolvingUsability` for additional information.
-    + `NOT_AVAILABLE` - Funding type is not available.
-+ `customerType` (enum, required) - Customer type.
-    + `UNKNOWN` - Customer is uknown for HCO.
-    + `FIRST_ORDER` - HCO knows the customer. Customer has no paid orders.
-    + `FULL` -  HCO knows the customer. Customer has at least one paid order.
-    + `BLOCKED` - HCO knows the customer. Customer is blocked.
-+ `customerDueDateCategory` (enum, required)
-    + `CATEGORY_CLASSIC` - customer with classic due date (14 days, with the exception of events (Christmas, etc.))
-    + `CATEGORY_EXTENDED` - customer with extended due date (20th day of next month, with the exception of events (Christmas, etc.))
-+ `customerOrdersCountLimit`: 0 (number, optional) - The maximum orders count that the customer can make. Not set if there is no limit.
-+ `customerOrdersCountRemaining`: 0 (number, optional) - The remaining orders count that the customer can make. Not set if there is no limit.
-+ `revolvingUsability`: false (boolean, optional) - Existing revolving account is usable for financing. For more detailed information see `revolvingCode`.
-+ `revolvingCode` (enum, optional)
-    + `OK`
-    + `ADDITIONAL_DATA_SECURITY` - The customer will be asked to send additional data for security reasons (see additionalData).
-    + `ADDITIONAL_ACTION` - The customer will be asked for further actions (increase of the global limit, to sign credit terms... )
-    + `NEW_REVOLVING` - New revolving loan is available for customer.
-    + `NOT_AVAILABLE` - Revolving loan is not available for customer.
-+ `message`: `V HCO peněžence nemáte dostatečný limit.` (string, optional) - Custom message for customer.
-    Examples:
-    “V HCO peněžence nemáte dostatečný limit.”
-    “Uveďte do objednávky jméno a příjmení, které používáte ve službě HCO.”
-    etc.
-+ `additionalData` (array[string], fixed-type, optional) - List of additional data that customer has to send.
-    Possible values in array: `PERSONAL_ID`, `ID_CARD_NO`, `ID_CARD_EXPIRY_DATE`, `ID_CARD_SCAN`.
-+ `additionalActions` (array[string], fixed-type, optional) - List of additional actions which will be required to finish application.
-    Possible values in array: `MOBILE_VERIFICATION`, `ACCOUNT_REGISTRATION`, `LIMIT_INCREASE`, `CREDIT_TERM_SUPPLEMENT`, `PAPERFORM_SUPPLEMENT`.
-
-## ObsoletePrecheckResults (object)
-Precheck results.
-
-### Properties
-+ `id` (string, required) - Unique identificator of precheck. Send this identificator in ApplicationRequest for better approval rate.
-+ `results` (array[ObsoletePrecheckResult], fixed-type, required) - Precheck results for each type of product.
-+ `limits` (ObsoleteLimits, optional)
-   Customer limits.
-   Estimated in case we don't know the customer.
-   Current customer's limits in case we know him and customer give us an approval for their usage.
-
-## ObsoleteLimits (object)
-Customer's limits
-
-### Properties
-+ `availableLimit` (AmountOld, required) - Customer's available limit
-+ `totalLimit` (AmountOld, required) - Customer's global limit
++ `id`: `1234` (string, required) - Unique identificator of Precheck. Send this identificator in ApplicationRequest for better approval rate.
++ `recommendation`:`false`  (boolean, required) - A recommendation of whether the order should be passed to the HCO.
+    true = Application is likely going to be approved.
+   false = Application is likely going to be rejected.
++ `message`:`V HCO peněžence nemáte dostatečný limit.` (string, optional) - Custom message for customer.
 
 ## ErrorNotFound (Error)
 + code: `APPLICATION_NOT_FOUND` (string, required) - Unique internal error code
