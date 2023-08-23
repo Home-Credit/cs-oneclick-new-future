@@ -747,7 +747,7 @@ Services that allow partner e-shops to find out a probability of *application's*
 
 ## Precheck [/financing/v1/scorings/precheck/extended]
 Simple operation for customer preliminary scoring.
-Returns a possible credit amount customer the customer can obtain. It is best suitable for identifying clients who will probably be rejected. Take into account that positive recommendation can not guarantee customer's approval as the result is based on only a few elementary pieces of information about the customer.
+Returns a possible credit amount the customer can obtain. It is best suitable for identifying clients who will probably be rejected. Take into account that positive recommendation can not guarantee customer's approval as the result is based only on a few elementary pieces of information about the customer.
 
 Resource has to be called with valid access token (see the [Security section](#reference/security)) from your server. If you plan to integrate it in a client flow, you should implement REST endpoint bound to your shopping basket session that will be used as a proxy to call HC API - **NEVER put access token directly to client side**.
 
