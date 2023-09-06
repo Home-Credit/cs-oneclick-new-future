@@ -1412,8 +1412,8 @@ Customer data
 ### Properties
 + `firstName`: `John` (string, required) -  Customer first (given) name. String values longer than 100 characters will be shortened to 100 characters.
 + `lastName`: `Newborn` (string, required) - Customer last (family) name. String values longer than 100 characters will be shortened to 100 characters.
-+ `email`: `john.newborn@country.com` (string, optional) - E-mail address of customer. At least one contact (`email` or `phone`) MUST be provided. MUST be valid email according to [RFC 2822](https://tools.ietf.org/html/rfc2822).
-+ `phone`: `+420777123456` (string, optional) - Mobile phone number with country code (including leading `+`). At least one contact (`email` or `phone`) MUST be provided.
++ `email`: `john.newborn@country.com` (string, required) - E-mail address of customer. MUST be valid email according to [RFC 2822](https://tools.ietf.org/html/rfc2822).
++ `phone`: `+420777123456` (string, required) - Mobile phone number with country code (including leading `+`). 
 + `externalId` (string, required) - Unique customer's identifier in partner's system. Typically used for linking request and response together.
 
 ## PrecheckResult (object)
