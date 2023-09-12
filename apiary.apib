@@ -1421,11 +1421,8 @@ Precheck result.
 
 ### Properties
 + `id`: `1234` (string, required) - Unique identificator of Precheck. Send this identificator in ApplicationRequest to improve approval rate.
-+ `customer` (PrecheckCustomerResponse, required) - Customer data
++ `customer` (PrecheckCustomer, required) - Customer data 
 + `potentialCreditAmount` (AmountOld, required) - Probable credit amount customer will be able to borrow, estimated on the basis of provided data.
-
-## PrecheckCustomerResponse (object)
-+ `externalId` (string, required) - Unique customer's identifier in partner's system. Typically used for linking request and response together.
 
 ## MultiPrecheckRequest (object)
 + `scoringData` (array[ScoringData], fixed-type, required)
