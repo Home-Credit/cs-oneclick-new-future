@@ -1433,12 +1433,18 @@ Precheck result.
 
 ## BatchNotification (object)
 + `id` (string, required) - Unique identifier of multi precheck's batch.
-+ `resultCode` (enum, required) - Result of the precheck's batch.
++ `status` (enum, required) - Result of the precheck's batch.
     + `SUCCESS` - Precheck ended for all clients
     + `PARTIAL_SUCCESS` - Precheck ended, but for some customers it ended with failure
     + `FAILURE` - Precheck ended with critical failure
 
-## MultiPrecheckResult (BatchNotification)
+## MultiPrecheckResult (object)
++ `id` (string, required) - Unique identifier of multi precheck's batch.
++ `status` (enum, required) - Result of the precheck's batch.
+    + `SUCCESS` - Precheck ended for all clients
+    + `PARTIAL_SUCCESS` - Precheck ended, but for some customers it ended with failure
+    + `FAILURE` - Precheck ended with critical failure
+    + `PROCESSING` - Precheck is still running
 + `data` (array[PrecheckResult], fixed-type, optional) - REQUIRED if precheck ended with `SUCCESS` or `PARTIAL_SUCCESS`
 
 
