@@ -3650,7 +3650,9 @@ paths:
                 sentDate: 2017-07-16T00:00:00+02:00
                 checkSum: 443E150D3406F6A8DC62C1DB224AFDD84FA9907071BB1AD9B2C7701031793662191501B26AADF3A31361341EA176C80B23D8A9A5E5B5219538289945FE0C20A7
                 sequenceNumber: 1
-  "https://apicz-test.homecredit.cz/verdun-train/app-flow/v1/applications/{applicationId}/changeState":
+  "/verdun-train/app-flow/v1/applications/{applicationId}/changeState":
+    servers:
+      - url: https://apicz-test.homecredit.cz
     post:
       responses:
         "200":
