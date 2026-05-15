@@ -3726,7 +3726,7 @@ paths:
         > NOTE: This action simulates real application process, which means that Application may be moved through one or multiple steps (`stateReason`) - as described in state diagram [State diagram of Application](https://github.com/mdostal-hci/oneclick-images/raw/master/StateDiagramApplication.png). That is why you may receive multiple notifications about changes of Application's state. Example: if you request change from `PROCESSING_REDIRECT_NEEDED` to `READY_TO_SHIP`, you will receive `PROCESSING_APPROVED` and `READY_TO_SHIP` notifications.
 
 
-        > NOTE: As you may see no transition from `READY_TO_SHIP` is allowed for `https://apicz-test.homecredit.cz/verdun-train/app-flow/v1/applications/{applicationId}/change-state` resource. You should use 'Mark order as...' resources according to your Order life cycle.
+        > NOTE: As you may see no transition from `READY_TO_SHIP` is allowed for `https://apicz-test.homecredit.cz/verdun-train/app-flow/v1/applications/{applicationId}/change-state` resource. You should use 'Mark order as...' resources according to your Order life cycle..
 
 
         + Parameters
